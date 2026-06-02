@@ -2,8 +2,10 @@ var GAS_URL = 'https://script.google.com/macros/s/AKfycbyuLkODpQZAvIoVK7PBJjq1xE
 
 var adminPassword = '';
 var currentItems  = [];
+var currentDepts  = [];
 var editingId     = null;
-var modalMode     = ''; // 'add' | 'edit' | 'adjust' | 'receive'
+var modalMode     = ''; // 'add' | 'edit' | 'adjust' | 'receive' | 'addDept' | 'editDept'
+var activeTab     = 'items'; // 'items' | 'depts'
 
 document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('loginBtn').addEventListener('click', login);
@@ -20,6 +22,16 @@ function login() {
   document.getElementById('loginSection').style.display = 'none';
   document.getElementById('adminSection').style.display = 'block';
   loadItems();
+  loadDepts();
+}
+
+// ── 탭 전환 ────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tabItems').classList.toggle('tab-active', tab === 'items');
+  document.getElementById('tabDepts').classList.toggle('tab-active', tab === 'depts');
+  document.getElementById('sectionItems').style.display = tab === 'items' ? 'block' : 'none';
+  document.getElementById('sectionDepts').style.display = tab === 'depts' ? 'block' : 'none';
 }
 
 // ── 물품 목록 로드 ─────────────────────────────────────
@@ -228,6 +240,140 @@ function showAlert(msg, type) {
   el.textContent = msg;
   el.className = 'alert ' + type;
   setTimeout(function () { el.className = 'alert'; el.textContent = ''; }, 4000);
+}
+
+// ── 소속 목록 로드 ─────────────────────────────────────
+function loadDepts() {
+  var list = document.getElementById('deptList');
+  list.innerHTML = '<p style="color:#999;font-size:0.85rem;">불러오는 중...</p>';
+
+  fetch(GAS_URL + '?action=getDepts')
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success) { currentDepts = res.depts; renderDepts(res.depts); }
+      else showAlert('소속 목록을 불러올 수 없습니다.', 'error');
+    })
+    .catch(function() { showAlert('네트워크 오류', 'error'); });
+}
+
+function renderDepts(depts) {
+  var list = document.getElementById('deptList');
+  if (!depts || depts.length === 0) {
+    list.innerHTML = '<p style="color:#999;font-size:0.85rem;text-align:center;padding:20px 0;">등록된 소속이 없습니다.</p>';
+    return;
+  }
+
+  list.innerHTML = '';
+  depts.forEach(function(dept, idx) {
+    var row = document.createElement('div');
+    row.className = 'dept-admin-row';
+    row.setAttribute('data-id', dept.id);
+    row.innerHTML =
+      '<div class="dept-order">' +
+        '<button class="order-btn" onclick="moveDept(' + idx + ', -1)" ' + (idx === 0 ? 'disabled' : '') + '>▲</button>' +
+        '<button class="order-btn" onclick="moveDept(' + idx + ', 1)" ' + (idx === depts.length-1 ? 'disabled' : '') + '>▼</button>' +
+      '</div>' +
+      '<div class="dept-name">' + esc(dept.name) + '</div>' +
+      '<div class="dept-actions">' +
+        '<button class="btn-action btn-edit" onclick="openEditDeptModal(' + dept.id + ', \'' + escJs(dept.name) + '\')">✏️ 수정</button>' +
+        '<button class="btn-action btn-danger" onclick="confirmDeleteDept(' + dept.id + ', \'' + escJs(dept.name) + '\')">🗑️ 삭제</button>' +
+      '</div>';
+    list.appendChild(row);
+  });
+}
+
+// ── 소속 순서 이동 ─────────────────────────────────────
+function moveDept(idx, dir) {
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= currentDepts.length) return;
+
+  // 배열 순서 변경
+  var temp = currentDepts[idx];
+  currentDepts[idx] = currentDepts[newIdx];
+  currentDepts[newIdx] = temp;
+
+  // 화면 즉시 반영
+  renderDepts(currentDepts);
+
+  // 서버에 저장
+  var ids = currentDepts.map(function(d) { return d.id; });
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'reorderDepts', password: adminPassword, ids: ids })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) { if (!res.success) showAlert(res.message, 'error'); })
+    .catch(function() { showAlert('순서 저장 실패', 'error'); });
+}
+
+// ── 소속 추가 모달 ─────────────────────────────────────
+function openAddDeptModal() {
+  modalMode = 'addDept';
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '소속 추가';
+  document.getElementById('modalBody').innerHTML =
+    '<div class="form-group"><label>소속명 <span class="required">*</span></label>' +
+    '<input type="text" id="mDeptName" placeholder="예: 신규계열명"></div>';
+  document.getElementById('itemModal').classList.add('open');
+}
+
+// ── 소속 수정 모달 ─────────────────────────────────────
+function openEditDeptModal(id, name) {
+  modalMode = 'editDept';
+  editingId = id;
+  document.getElementById('modalTitle').textContent = '소속 수정';
+  document.getElementById('modalBody').innerHTML =
+    '<div class="form-group"><label>소속명 <span class="required">*</span></label>' +
+    '<input type="text" id="mDeptName" value="' + esc(name) + '"></div>';
+  document.getElementById('itemModal').classList.add('open');
+}
+
+function confirmDeleteDept(id, name) {
+  if (!confirm('"' + name + '" 소속을 삭제하시겠습니까?')) return;
+  postAction({ action: 'deleteDept', password: adminPassword, id: id });
+  setTimeout(function() { loadDepts(); }, 800);
+}
+
+// ── saveModal 분기에 소속 추가 ────────────────────────
+var _origSaveModal = saveModal;
+
+function saveModal() {
+  if (modalMode === 'addDept')  return doAddDept();
+  if (modalMode === 'editDept') return doEditDept();
+  if (modalMode === 'add')     return doAddItem();
+  if (modalMode === 'edit')    return doEditItem();
+  if (modalMode === 'adjust')  return doAdjustStock();
+  if (modalMode === 'receive') return doReceiveStock();
+}
+
+function doAddDept() {
+  var name = (document.getElementById('mDeptName').value || '').trim();
+  if (!name) return alert('소속명을 입력하세요.');
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'addDept', password: adminPassword, name: name })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      showAlert(res.message, res.success ? 'success' : 'error');
+      if (res.success) { closeModal(); loadDepts(); }
+    })
+    .catch(function() { showAlert('네트워크 오류', 'error'); });
+}
+
+function doEditDept() {
+  var name = (document.getElementById('mDeptName').value || '').trim();
+  if (!name) return alert('소속명을 입력하세요.');
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'updateDept', password: adminPassword, id: editingId, name: name })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      showAlert(res.message, res.success ? 'success' : 'error');
+      if (res.success) { closeModal(); loadDepts(); }
+    })
+    .catch(function() { showAlert('네트워크 오류', 'error'); });
 }
 
 function esc(str) {

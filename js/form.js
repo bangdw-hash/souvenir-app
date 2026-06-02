@@ -4,8 +4,8 @@ var selectedDept = '';
 
 document.addEventListener('DOMContentLoaded', function () {
   setTodayDates();
+  loadDepts();
   loadItems();
-  bindDeptButtons();
 });
 
 function setTodayDates() {
@@ -14,13 +14,44 @@ function setTodayDates() {
   document.getElementById('useDate').value = today;
 }
 
-function bindDeptButtons() {
-  document.querySelectorAll('.dept-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.dept-btn').forEach(function (b) { b.classList.remove('selected'); });
+// ── 소속 동적 로드 ─────────────────────────────────────
+function loadDepts() {
+  var grid = document.getElementById('deptGrid');
+  grid.innerHTML = '<p style="color:#999;font-size:0.82rem;">소속 목록 불러오는 중...</p>';
+
+  fetch(GAS_URL + '?action=getDepts')
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success && res.depts.length > 0) renderDepts(res.depts);
+      else renderDefaultDepts();
+    })
+    .catch(function() { renderDefaultDepts(); });
+}
+
+function renderDefaultDepts() {
+  var defaults = [
+    '임원','기획처','행정관리처','교육지원처','입학처',
+    '항공정비계열','스마트안전진단계열','항공관광계열','항공보안계열','국방경찰계열',
+    '기종교육원','무인항공교육원','비행교육원','아세아직업전문학교','기타'
+  ];
+  renderDepts(defaults.map(function(n, i) { return { id: i+1, name: n }; }));
+}
+
+function renderDepts(depts) {
+  var grid = document.getElementById('deptGrid');
+  grid.innerHTML = '';
+  depts.forEach(function(dept) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'dept-btn';
+    btn.dataset.value = dept.name;
+    btn.textContent = dept.name;
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.dept-btn').forEach(function(b) { b.classList.remove('selected'); });
       btn.classList.add('selected');
-      selectedDept = btn.dataset.value;
+      selectedDept = dept.name;
     });
+    grid.appendChild(btn);
   });
 }
 

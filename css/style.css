@@ -186,6 +186,33 @@ textarea { resize: vertical; min-height: 80px; }
 .modal h3 { font-size: 1.05rem; margin-bottom: 16px; color: #2d3748; }
 .modal-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
 
+/* 탭 메뉴 */
+.tab-wrap { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab-btn {
+  flex: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: white; font-size: 0.9rem; font-family: inherit; font-weight: 600;
+  color: #718096; cursor: pointer; transition: all 0.15s;
+}
+.tab-btn:hover { border-color: #2d6a9f; color: #2d6a9f; }
+.tab-btn.tab-active { background: #2d6a9f; border-color: #2d6a9f; color: white; }
+
+/* 소속 관리 행 */
+.dept-admin-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid #f0f4f8;
+}
+.dept-admin-row:last-child { border-bottom: none; }
+.dept-order { display: flex; flex-direction: column; gap: 2px; }
+.order-btn {
+  width: 26px; height: 22px; border: 1px solid #e2e8f0; border-radius: 6px;
+  background: white; font-size: 0.7rem; cursor: pointer; line-height: 1;
+  color: #4a5568; transition: all 0.15s;
+}
+.order-btn:hover:not(:disabled) { background: #2d6a9f; color: white; border-color: #2d6a9f; }
+.order-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.dept-name { flex: 1; font-size: 0.9rem; font-weight: 600; color: #2d3748; }
+.dept-actions { display: flex; gap: 6px; }
+
 @media (max-width: 400px) {
   .date-row  { grid-template-columns: 1fr; }
   .stock-summary { grid-template-columns: repeat(2, 1fr); }

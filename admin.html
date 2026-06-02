@@ -31,13 +31,33 @@
   <!-- 관리 섹션 -->
   <div id="adminSection" style="display:none;">
 
-    <!-- 물품 목록 -->
-    <div class="card">
-      <div class="card-title">
-        <span>재고 현황 및 물품 관리</span>
-        <button class="btn-primary" onclick="openAddModal()" style="padding:6px 14px;font-size:0.8rem;">+ 물품 추가</button>
+    <!-- 탭 메뉴 -->
+    <div class="tab-wrap">
+      <button class="tab-btn tab-active" id="tabItems" onclick="switchTab('items')">📦 물품 관리</button>
+      <button class="tab-btn" id="tabDepts" onclick="switchTab('depts')">🏢 소속 관리</button>
+    </div>
+
+    <!-- 물품 관리 섹션 -->
+    <div id="sectionItems">
+      <div class="card">
+        <div class="card-title">
+          <span>재고 현황 및 물품 관리</span>
+          <button class="btn-primary" onclick="openAddModal()" style="padding:6px 14px;font-size:0.8rem;">+ 물품 추가</button>
+        </div>
+        <div id="adminItemList"></div>
       </div>
-      <div id="adminItemList"></div>
+    </div>
+
+    <!-- 소속 관리 섹션 -->
+    <div id="sectionDepts" style="display:none;">
+      <div class="card">
+        <div class="card-title">
+          <span>소속 목록 관리</span>
+          <button class="btn-primary" onclick="openAddDeptModal()" style="padding:6px 14px;font-size:0.8rem;">+ 소속 추가</button>
+        </div>
+        <p style="font-size:0.78rem;color:#718096;margin-bottom:12px;">▲▼ 버튼으로 순서를 변경할 수 있습니다. 변경 즉시 신청 폼에 반영됩니다.</p>
+        <div id="deptList"></div>
+      </div>
     </div>
 
     <div style="text-align:center;margin-top:8px;">

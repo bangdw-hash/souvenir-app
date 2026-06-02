@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>기념품 불출 대장</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <h1>📦 기념품 불출 대장</h1>
+    <p>아래 양식을 작성하여 신청해 주세요</p>
+  </div>
+
+  <!-- 알림 박스 -->
+  <div id="alertBox" class="alert"></div>
+
+  <!-- 성공 화면 -->
+  <div id="successScreen" class="success-screen">
+    <div class="icon">✅</div>
+    <h2>신청이 완료되었습니다!</h2>
+    <p>담당자가 확인 후 처리해 드리겠습니다.</p>
+    <button class="reset-btn" onclick="resetForm()">새로 신청하기</button>
+  </div>
+
+  <!-- 폼 본문 -->
+  <div id="formWrap">
+    <form id="souvenirForm">
+
+      <!-- 신청자 정보 -->
+      <div class="card">
+        <div class="card-title">신청자 정보</div>
+
+        <div class="form-group">
+          <label for="name">성명 <span class="required">*</span></label>
+          <input type="text" id="name" placeholder="이름을 입력하세요" autocomplete="off">
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <label>소속 <span class="required">*</span></label>
+          <div class="dept-grid" style="margin-top:8px;">
+            <button type="button" class="dept-btn" data-value="임원">임원</button>
+            <button type="button" class="dept-btn" data-value="기획처">기획처</button>
+            <button type="button" class="dept-btn" data-value="행정관리처">행정관리처</button>
+            <button type="button" class="dept-btn" data-value="교육지원처">교육지원처</button>
+            <button type="button" class="dept-btn" data-value="입학처">입학처</button>
+            <button type="button" class="dept-btn" data-value="항공정비계열">항공정비계열</button>
+            <button type="button" class="dept-btn" data-value="스마트안전진단계열">스마트안전진단계열</button>
+            <button type="button" class="dept-btn" data-value="항공관광계열">항공관광계열</button>
+            <button type="button" class="dept-btn" data-value="항공보안계열">항공보안계열</button>
+            <button type="button" class="dept-btn" data-value="국방경찰계열">국방경찰계열</button>
+            <button type="button" class="dept-btn" data-value="기종교육원">기종교육원</button>
+            <button type="button" class="dept-btn" data-value="무인항공교육원">무인항공교육원</button>
+            <button type="button" class="dept-btn" data-value="비행교육원">비행교육원</button>
+            <button type="button" class="dept-btn" data-value="아세아직업전문학교">아세아직업전문학교</button>
+            <button type="button" class="dept-btn" data-value="기타">기타</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 신청 물품 -->
+      <div class="card">
+        <div class="card-title">신청 물품 <span class="required">*</span></div>
+        <div id="itemList">
+          <!-- JS로 동적 렌더링 -->
+        </div>
+      </div>
+
+      <!-- 사용처 및 목적 -->
+      <div class="card">
+        <div class="card-title">사용처 및 목적 <span class="required">*</span></div>
+        <label for="purpose">사용처 / 행사명 / 목적</label>
+        <textarea id="purpose" placeholder="예: 2024 입학식 행사 기념품 / 본관 대회의실 / 내빈 증정용"></textarea>
+        <p class="hint">⚠️ 장소, 행사명, 사용 목적을 구체적으로 작성해 주세요.</p>
+      </div>
+
+      <!-- 날짜 -->
+      <div class="card">
+        <div class="card-title">신청일 / 사용일</div>
+        <div class="date-row">
+          <div class="form-group">
+            <label for="requestDate">신청일 <span class="required">*</span></label>
+            <input type="date" id="requestDate">
+          </div>
+          <div class="form-group">
+            <label for="useDate">사용일 <span class="required">*</span></label>
+            <input type="date" id="useDate">
+          </div>
+        </div>
+      </div>
+
+      <!-- 제출 -->
+      <button type="submit" class="submit-btn" id="submitBtn">신청 제출</button>
+
+    </form>
+  </div>
+
+  <!-- 관리자 링크 -->
+  <div class="admin-link">
+    <a href="admin.html">관리자 페이지</a>
+  </div>
+
+</div>
+
+<script src="js/form.js"></script>
+</body>
+</html>

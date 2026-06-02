@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 페이지 - 기념품 불출 대장</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 헤더 -->
+  <div class="header admin-header">
+    <h1>⚙️ 관리자 페이지</h1>
+    <p>기념품 물품 관리</p>
+  </div>
+
+  <!-- 알림 -->
+  <div id="adminAlert" class="alert"></div>
+
+  <!-- 로그인 섹션 -->
+  <div id="loginSection" class="card">
+    <div class="card-title">관리자 인증</div>
+    <div class="password-gate">
+      <label for="passwordInput">비밀번호를 입력하세요</label>
+      <input type="password" id="passwordInput" placeholder="관리자 비밀번호" style="max-width:280px;margin:10px auto 0;display:block;">
+      <button class="btn-primary" id="loginBtn">확인</button>
+    </div>
+  </div>
+
+  <!-- 관리 섹션 (로그인 후 표시) -->
+  <div id="adminSection" style="display:none;">
+
+    <!-- 물품 목록 -->
+    <div class="card">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>현재 물품 목록</span>
+        <button class="btn-primary" onclick="openAddModal()" style="padding:6px 14px;font-size:0.82rem;margin-top:0;">+ 물품 추가</button>
+      </div>
+      <div id="adminItemList">
+        <!-- JS로 렌더링 -->
+      </div>
+    </div>
+
+    <!-- 신청 폼으로 돌아가기 -->
+    <div style="text-align:center;margin-top:8px;">
+      <a href="index.html" style="font-size:0.82rem;color:#718096;text-decoration:none;">← 신청 폼으로 돌아가기</a>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- 물품 추가/수정 모달 -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal">
+    <h3 id="modalTitle">물품 추가</h3>
+
+    <div class="form-group">
+      <label for="modalItemName">물품명 <span class="required">*</span></label>
+      <input type="text" id="modalItemName" placeholder="예: 화장품 세트 대형">
+    </div>
+
+    <div class="form-group">
+      <label for="modalItemDesc">설명</label>
+      <input type="text" id="modalItemDesc" placeholder="예: 크림 대형 1통 + 에센스 1통">
+    </div>
+
+    <div class="form-group toggle-wrap" id="modalActiveWrap" style="display:none;">
+      <input type="checkbox" class="toggle" id="modalActive" checked>
+      <label for="modalActive" style="margin-bottom:0;font-weight:500;">활성 (신청 폼에 표시)</label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-primary" onclick="saveItem()" style="margin-top:0;">저장</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>

@@ -22,9 +22,13 @@ var DEFAULT_DEPTS = [
 
 function doGet(e) {
   var action = e.parameter.action;
-  if (action === 'getItems')    return getItems();
-  if (action === 'getStock')    return getStockSummary();
-  if (action === 'getDepts')    return getDepts();
+  if (action === 'getItems')         return getItems();
+  if (action === 'getStock')         return getStockSummary();
+  if (action === 'getDepts')         return getDepts();
+  if (action === 'getVenues')        return getVenues();
+  if (action === 'getVenueRequests') return getVenueRequestList(e.parameter);
+  if (action === 'getSettings')      return getSettings();
+  if (action === 'getVenueReport')   return getVenueReport(e.parameter);
   return jsonResponse({ success: true });
 }
 
@@ -44,7 +48,14 @@ function doPost(e) {
   if (action === 'deleteDept')    return deleteDept(data);
   if (action === 'reorderDepts')  return reorderDepts(data);
   if (action === 'receiveStock')  return receiveStock(data);
-  if (action === 'setMonthLimit') return setMonthLimit(data);
+  if (action === 'setMonthLimit')       return setMonthLimit(data);
+  if (action === 'submitVenueRequest')  return submitVenueRequest(data);
+  if (action === 'updateVenueStatus')   return updateVenueStatus(data);
+  if (action === 'addVenue')            return addVenue(data);
+  if (action === 'updateVenue')         return updateVenue(data);
+  if (action === 'toggleVenueItem')     return toggleVenueItem(data);
+  if (action === 'saveSettings')        return saveSettings(data);
+  if (action === 'sendVenueEmail')      return sendVenueEmailAction(data);
 
   return jsonResponse({ success: false, message: '알 수 없는 요청' });
 }

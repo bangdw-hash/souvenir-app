@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'KoPubWorld';
+  src: url('../fonts/KoPubWorld_Dotum_Bold.ttf') format('truetype');
+  font-weight: 700; font-style: normal;
+}
+@font-face {
+  font-family: 'KoPubWorld';
+  src: url('../fonts/KoPubWorld_Dotum_Medium.ttf') format('truetype');
+  font-weight: 500; font-style: normal;
+}
+@font-face {
+  font-family: 'KoPubWorld';
+  src: url('../fonts/KoPubWorld_Dotum_Light.ttf') format('truetype');
+  font-weight: 300; font-style: normal;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -217,4 +233,304 @@ textarea { resize: vertical; min-height: 80px; }
   .date-row  { grid-template-columns: 1fr; }
   .stock-summary { grid-template-columns: repeat(2, 1fr); }
   .item-actions { gap: 4px; }
+}
+
+/* ===== 대관 시스템 공통 ===== */
+.venue-page { font-family: 'KoPubWorld', 'Noto Sans KR', sans-serif; }
+.venue-page .container { max-width: 800px; }
+
+/* 위치/주차 안내 배너 */
+.venue-info-banner {
+  background: #f0f6ff; border: 1px solid #c5d8f5; border-radius: 12px;
+  padding: 14px 18px; margin-bottom: 16px; font-family: 'KoPubWorld', sans-serif;
+}
+.venue-info-banner .loc { font-weight: 500; font-size: 0.9rem; color: #2d4a7a; margin-bottom: 6px; }
+.venue-info-banner .loc span { margin-right: 16px; }
+.parking-notice {
+  background: #fffbf0; border: 1px solid #f0d080; border-radius: 10px;
+  padding: 12px 16px; margin-top: 10px; font-family: 'KoPubWorld', sans-serif;
+}
+.parking-notice .p-title { font-weight: 700; font-size: 0.82rem; color: #a05800; margin-bottom: 6px; }
+.parking-notice .p-item { font-weight: 300; font-size: 0.8rem; color: #6b4400; line-height: 1.7; }
+.parking-notice .p-contact { font-weight: 500; font-size: 0.8rem; color: #a05800; margin-top: 6px; }
+
+/* 대관 요금표 */
+.venue-rate-table { width: 100%; border-collapse: collapse; font-family: 'KoPubWorld', sans-serif; font-size: 0.82rem; }
+.venue-rate-table th {
+  background: #1e3a5f; color: white; padding: 9px 10px;
+  font-weight: 700; text-align: center; border: 1px solid #2d6a9f;
+}
+.venue-rate-table td {
+  padding: 8px 10px; border: 1px solid #e2e8f0; text-align: center;
+  vertical-align: middle; font-weight: 500; color: #2d3748;
+}
+.venue-rate-table tr:nth-child(even) td { background: #f8fafc; }
+.venue-rate-table .building-cell {
+  font-weight: 700; background: #edf2f8; color: #1e3a5f;
+  writing-mode: vertical-rl; text-orientation: mixed; width: 36px;
+}
+.venue-rate-table .rate-amount { font-weight: 700; color: #1e3a5f; }
+.venue-rate-table .rate-note { font-weight: 300; font-size: 0.75rem; color: #718096; }
+.venue-rate-table .separate-badge {
+  display: inline-block; background: #fff3cd; color: #856404;
+  font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+}
+.venue-rate-table .new-badge {
+  display: inline-block; background: #e6f4ea; color: #1e7e34;
+  font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+}
+.venue-rate-table .staff-badge {
+  display: inline-block; background: #e8f0fb; color: #2d6a9f;
+  font-size: 0.72rem; font-weight: 500; padding: 2px 7px; border-radius: 10px;
+}
+.rate-footnote {
+  font-family: 'KoPubWorld', sans-serif; font-weight: 300;
+  font-size: 0.78rem; color: #718096; margin-top: 10px; line-height: 1.7;
+}
+.rate-footnote b { font-weight: 500; color: #4a5568; }
+
+/* 예약 위저드 */
+.wizard-steps {
+  display: flex; gap: 0; margin-bottom: 24px;
+  background: white; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.wizard-step {
+  flex: 1; padding: 12px 8px; text-align: center;
+  font-family: 'KoPubWorld', sans-serif; font-weight: 500;
+  font-size: 0.78rem; color: #a0aec0; border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.wizard-step.active { color: #1e3a5f; border-bottom-color: #2d6a9f; font-weight: 700; }
+.wizard-step.done   { color: #2d9e5f; border-bottom-color: #2d9e5f; }
+.wizard-step .step-num {
+  display: block; font-size: 1rem; margin-bottom: 2px;
+  font-weight: 700;
+}
+
+/* 시설 선택 카드 */
+.venue-select-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+.venue-card {
+  padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fafcff; cursor: pointer; transition: all 0.15s;
+  font-family: 'KoPubWorld', sans-serif;
+}
+.venue-card:hover  { border-color: #2d6a9f; }
+.venue-card.selected { border-color: #2d6a9f; background: #edf2fb; }
+.venue-card .vc-name { font-weight: 700; font-size: 0.88rem; color: #2d3748; }
+.venue-card .vc-floor { font-weight: 300; font-size: 0.75rem; color: #718096; margin-top: 2px; }
+.venue-card .vc-price { font-weight: 500; font-size: 0.8rem; color: #2d6a9f; margin-top: 4px; }
+.venue-card.separate-venue { border-color: #f0d080; background: #fffbf0; }
+.venue-card.separate-venue .vc-name { color: #a05800; }
+
+/* 금액 계산 박스 */
+.price-calc-box {
+  background: #1e3a5f; color: white; border-radius: 14px;
+  padding: 18px; margin-top: 16px; font-family: 'KoPubWorld', sans-serif;
+}
+.price-calc-box .pc-title { font-weight: 700; font-size: 0.88rem; margin-bottom: 12px; opacity: 0.9; }
+.price-calc-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.price-calc-row:last-child { border-bottom: none; }
+.price-calc-row .pc-label { font-weight: 300; font-size: 0.82rem; opacity: 0.85; }
+.price-calc-row .pc-amount { font-weight: 500; font-size: 0.88rem; }
+.price-calc-row.total .pc-label { font-weight: 700; font-size: 0.92rem; opacity: 1; }
+.price-calc-row.total .pc-amount { font-weight: 700; font-size: 1.05rem; color: #ffd666; }
+.price-calc-surcharge { font-weight: 300; font-size: 0.75rem; opacity: 0.7; margin-top: 8px; }
+
+/* 문서 출력 버튼 그룹 */
+.doc-actions {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px;
+}
+.btn-doc {
+  padding: 14px 10px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: white; font-family: 'KoPubWorld', sans-serif; font-weight: 700;
+  font-size: 0.82rem; color: #4a5568; cursor: pointer; text-align: center;
+  transition: all 0.15s; line-height: 1.4;
+}
+.btn-doc:hover { border-color: #2d6a9f; color: #2d6a9f; background: #f0f6ff; }
+.btn-doc .doc-icon { display: block; font-size: 1.3rem; margin-bottom: 4px; }
+.btn-doc-primary { background: #1e3a5f; border-color: #1e3a5f; color: white; }
+.btn-doc-primary:hover { background: #2d6a9f; border-color: #2d6a9f; color: white; }
+
+/* 텍스트 전문 모달 */
+.text-preview-modal .modal { max-width: 600px; }
+.text-doc-content {
+  font-family: 'KoPubWorld', 'Courier New', monospace;
+  font-weight: 300; font-size: 0.82rem; color: #2d3748;
+  background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px;
+  padding: 16px; white-space: pre-wrap; line-height: 1.8; max-height: 400px; overflow-y: auto;
+}
+.text-doc-content .t-title { font-weight: 700; font-size: 1rem; text-align: center; display: block; margin-bottom: 8px; }
+.text-doc-content .t-section { font-weight: 500; }
+
+/* 사업자 정보 입력 */
+.biz-input-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.biz-tab-btn {
+  flex: 1; padding: 8px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  background: white; font-family: 'KoPubWorld', sans-serif; font-weight: 500;
+  font-size: 0.8rem; color: #718096; cursor: pointer; text-align: center; transition: all 0.15s;
+}
+.biz-tab-btn.active { background: #2d6a9f; border-color: #2d6a9f; color: white; font-weight: 700; }
+.biz-upload-area {
+  border: 2px dashed #c5d8f5; border-radius: 10px; padding: 24px;
+  text-align: center; cursor: pointer; transition: all 0.15s; background: #f8faff;
+}
+.biz-upload-area:hover { border-color: #2d6a9f; background: #edf2fb; }
+.biz-upload-area .up-icon { font-size: 2rem; margin-bottom: 8px; }
+.biz-upload-area .up-text { font-family: 'KoPubWorld', sans-serif; font-weight: 500; font-size: 0.85rem; color: #4a5568; }
+.biz-upload-area .up-sub { font-weight: 300; font-size: 0.75rem; color: #a0aec0; margin-top: 4px; }
+.biz-preview-img { max-width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid #e2e8f0; }
+
+/* 상태 뱃지 */
+.status-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-family: 'KoPubWorld', sans-serif; font-weight: 700; font-size: 0.75rem;
+}
+.status-QUOTE_ISSUED  { background: #e8f0fb; color: #2d6a9f; }
+.status-REQUESTED     { background: #fff3cd; color: #856404; }
+.status-APPROVED      { background: #e6f4ea; color: #1e7e34; }
+.status-REJECTED      { background: #fdecea; color: #c0392b; }
+.status-CANCELLED     { background: #f0f0f0; color: #718096; }
+.status-IN_USE        { background: #f3e8ff; color: #6b46c1; }
+.status-COMPLETED     { background: #e0f5f1; color: #276749; }
+.status-INVOICED      { background: #e8eaf6; color: #3949ab; }
+.status-PAID          { background: #fff8e1; color: #c77700; }
+
+/* 관리자 대관 탭 */
+.venue-admin-subtabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.va-subtab-btn {
+  padding: 8px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  background: white; font-family: 'KoPubWorld', sans-serif; font-weight: 500;
+  font-size: 0.82rem; color: #718096; cursor: pointer; transition: all 0.15s;
+}
+.va-subtab-btn:hover { border-color: #2d6a9f; color: #2d6a9f; }
+.va-subtab-btn.active { background: #2d6a9f; border-color: #2d6a9f; color: white; font-weight: 700; }
+
+/* 프로젝트 카드 */
+.project-card {
+  background: #fafcff; border: 1.5px solid #e8f0fb; border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
+  font-family: 'KoPubWorld', sans-serif;
+}
+.project-card:hover { border-color: #2d6a9f; box-shadow: 0 2px 8px rgba(45,106,159,0.12); }
+.project-card .pc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.project-card .pc-org { font-weight: 700; font-size: 0.92rem; color: #2d3748; }
+.project-card .pc-facility { font-weight: 500; font-size: 0.82rem; color: #4a5568; margin-top: 3px; }
+.project-card .pc-date { font-weight: 300; font-size: 0.78rem; color: #718096; }
+.project-card .pc-amount { font-weight: 700; font-size: 0.92rem; color: #1e3a5f; }
+
+/* 일정 이력 타임라인 */
+.schedule-timeline { margin: 12px 0; }
+.sched-item {
+  display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f4f8;
+  font-family: 'KoPubWorld', sans-serif; align-items: flex-start;
+}
+.sched-item:last-child { border-bottom: none; }
+.sched-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+}
+.sched-dot.original { background: #2d6a9f; }
+.sched-dot.added    { background: #2d9e5f; }
+.sched-dot.removed  { background: #e53e3e; }
+.sched-dot.modified { background: #e07b39; }
+.sched-info { flex: 1; }
+.sched-type-badge {
+  display: inline-block; font-size: 0.72rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px; margin-right: 6px;
+}
+.sched-type-badge.original { background: #e8f0fb; color: #2d6a9f; }
+.sched-type-badge.added    { background: #e6f4ea; color: #1e7e34; }
+.sched-type-badge.removed  { background: #fdecea; color: #c0392b; text-decoration: line-through; }
+.sched-type-badge.modified { background: #fff3cd; color: #856404; }
+.sched-datetime { font-weight: 500; font-size: 0.82rem; color: #2d3748; }
+.sched-meta { font-weight: 300; font-size: 0.75rem; color: #a0aec0; margin-top: 2px; }
+.sched-amount { font-weight: 700; font-size: 0.82rem; color: #1e3a5f; flex-shrink: 0; }
+
+/* 공정 현황 칸반 */
+.kanban-wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; overflow-x: auto; }
+.kanban-col { background: #f8fafc; border-radius: 12px; padding: 12px; min-width: 180px; }
+.kanban-col-title { font-family: 'KoPubWorld', sans-serif; font-weight: 700; font-size: 0.8rem; color: #4a5568; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+.kanban-item {
+  background: white; border-radius: 8px; padding: 10px; margin-bottom: 8px;
+  font-family: 'KoPubWorld', sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.kanban-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.kanban-item .ki-org { font-weight: 700; font-size: 0.82rem; color: #2d3748; }
+.kanban-item .ki-detail { font-weight: 300; font-size: 0.75rem; color: #718096; margin-top: 2px; }
+
+/* PDF 문서 템플릿 (숨김, html2canvas 캡처용) */
+.pdf-template {
+  position: fixed; top: -9999px; left: -9999px;
+  width: 794px; min-height: 1123px; background: white;
+  font-family: 'KoPubWorld', sans-serif; padding: 50px 55px;
+  box-sizing: border-box; z-index: -1;
+}
+.pdf-template .pdf-issuer-name { font-weight: 700; font-size: 13px; color: #1e3a5f; }
+.pdf-template .pdf-doc-title {
+  font-weight: 700; font-size: 22px; color: #1e3a5f;
+  text-align: center; margin: 20px 0 24px; letter-spacing: 4px;
+}
+.pdf-template .pdf-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #ccc; margin-bottom: 20px; }
+.pdf-template .pdf-meta-cell { padding: 7px 12px; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+.pdf-template .pdf-meta-cell:nth-child(even) { border-right: none; }
+.pdf-template .pdf-meta-label { font-weight: 700; font-size: 10px; color: #718096; display: block; margin-bottom: 2px; }
+.pdf-template .pdf-meta-val   { font-weight: 500; font-size: 11px; color: #2d3748; }
+.pdf-template .pdf-section-title { font-weight: 700; font-size: 11px; color: #1e3a5f; margin: 16px 0 6px; padding-bottom: 4px; border-bottom: 2px solid #1e3a5f; }
+.pdf-template table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.pdf-template table th { background: #1e3a5f; color: white; padding: 7px 8px; font-weight: 700; text-align: center; border: 1px solid #1e3a5f; }
+.pdf-template table td { padding: 7px 8px; border: 1px solid #ddd; font-weight: 500; }
+.pdf-template table td.right { text-align: right; }
+.pdf-template table td.center { text-align: center; }
+.pdf-template table tr.total-row td { background: #f0f6ff; font-weight: 700; font-size: 11px; color: #1e3a5f; }
+.pdf-template .pdf-note { font-weight: 300; font-size: 9.5px; color: #718096; line-height: 1.7; margin-top: 12px; }
+.pdf-template .pdf-note b { font-weight: 500; color: #4a5568; }
+.pdf-template .pdf-account { background: #f0f6ff; border-radius: 6px; padding: 10px 14px; margin-top: 14px; }
+.pdf-template .pdf-account .pa-label { font-weight: 700; font-size: 10px; color: #2d6a9f; margin-bottom: 4px; }
+.pdf-template .pdf-account .pa-val { font-weight: 500; font-size: 11px; color: #1e3a5f; }
+.pdf-template .pdf-manager { display: flex; justify-content: flex-end; margin-top: 20px; font-size: 10px; }
+.pdf-template .pdf-manager-box { text-align: right; }
+.pdf-template .pdf-manager-box .pm-name { font-weight: 700; font-size: 11px; color: #2d3748; }
+.pdf-template .pdf-manager-box .pm-detail { font-weight: 300; color: #718096; line-height: 1.7; }
+.pdf-template .pdf-exempt { font-weight: 300; font-size: 9px; color: #e07b39; text-align: right; margin-top: 4px; }
+.pdf-template .pdf-divider { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+
+/* 이메일 에디터 */
+.email-editor-wrap textarea {
+  font-family: 'KoPubWorld', sans-serif; font-weight: 300;
+  font-size: 0.85rem; min-height: 260px; line-height: 1.8;
+}
+.email-editor-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+/* 리포트 */
+.report-stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.report-stat-card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center; font-family: 'KoPubWorld', sans-serif; }
+.report-stat-card .rs-label { font-weight: 300; font-size: 0.75rem; color: #718096; display: block; margin-bottom: 4px; }
+.report-stat-card .rs-val   { font-weight: 700; font-size: 1.3rem; color: #1e3a5f; }
+
+/* 설정 폼 */
+.settings-group { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 12px; font-family: 'KoPubWorld', sans-serif; }
+.settings-group-title { font-weight: 700; font-size: 0.82rem; color: #2d6a9f; margin-bottom: 12px; }
+.settings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 공정 타임라인 (프로젝트 상세) */
+.process-timeline { display: flex; align-items: center; gap: 0; margin: 16px 0; overflow-x: auto; padding-bottom: 4px; }
+.pt-step { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; min-width: 72px; }
+.pt-dot { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #a0aec0; z-index: 1; }
+.pt-dot.done    { background: #2d9e5f; border-color: #2d9e5f; color: white; }
+.pt-dot.current { background: #2d6a9f; border-color: #2d6a9f; color: white; animation: pulse 2s infinite; }
+.pt-dot.cancel  { background: #e53e3e; border-color: #e53e3e; color: white; }
+.pt-label { font-family: 'KoPubWorld', sans-serif; font-weight: 500; font-size: 0.68rem; color: #718096; margin-top: 5px; text-align: center; }
+.pt-label.done { color: #2d9e5f; font-weight: 700; }
+.pt-label.current { color: #2d6a9f; font-weight: 700; }
+.pt-connector { flex: 1; height: 3px; background: #e2e8f0; min-width: 20px; }
+.pt-connector.done { background: #2d9e5f; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(45,106,159,0.4)} 50%{box-shadow:0 0 0 6px rgba(45,106,159,0)} }
+
+@media (max-width: 600px) {
+  .venue-select-grid { grid-template-columns: 1fr; }
+  .doc-actions { grid-template-columns: 1fr; }
+  .kanban-wrap { grid-template-columns: repeat(2,1fr); }
+  .report-stat-grid { grid-template-columns: repeat(2,1fr); }
+  .settings-row { grid-template-columns: 1fr; }
 }

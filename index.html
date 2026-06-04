@@ -1,107 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>아세아 기념품 온라인 신청 창구</title>
-  <!-- OG 메타태그 (링크 공유 시 미리보기) -->
-  <meta property="og:title" content="아세아 기념품 온라인 신청 창구">
-  <meta property="og:description" content="QR코드를 스캔하여 기념품을 신청하세요">
-  <meta property="og:image" content="https://bangdw-hash.github.io/souvenir-app/og-image.png">
-  <meta property="og:url" content="https://bangdw-hash.github.io/souvenir-app/">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://bangdw-hash.github.io/souvenir-app/og-image.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-
-<div class="container">
-
-  <!-- 헤더 -->
-  <div class="header">
-    <h1>📦 기념품 불출 대장</h1>
-    <p>아래 양식을 작성하여 신청해 주세요</p>
-  </div>
-
-  <!-- 알림 박스 -->
-  <div id="alertBox" class="alert"></div>
-
-  <!-- 성공 화면 -->
-  <div id="successScreen" class="success-screen">
-    <div class="icon">✅</div>
-    <h2>신청이 완료되었습니다!</h2>
-    <p>담당자가 확인 후 처리해 드리겠습니다.</p>
-    <button class="reset-btn" onclick="resetForm()">새로 신청하기</button>
-  </div>
-
-  <!-- 폼 본문 -->
-  <div id="formWrap">
-    <form id="souvenirForm">
-
-      <!-- 신청자 정보 -->
-      <div class="card">
-        <div class="card-title">신청자 정보</div>
-
-        <div class="form-group">
-          <label for="name">성명 <span class="required">*</span></label>
-          <input type="text" id="name" placeholder="이름을 입력하세요" autocomplete="off">
-        </div>
-
-        <div class="form-group" style="margin-top:16px;">
-          <label>소속 <span class="required">*</span></label>
-          <div class="dept-grid" id="deptGrid" style="margin-top:8px;">
-            <!-- JS로 동적 렌더링 -->
-          </div>
-        </div>
-      </div>
-
-      <!-- 신청 물품 -->
-      <div class="card">
-        <div class="card-title">신청 물품 <span class="required">*</span></div>
-        <div id="itemList">
-          <!-- JS로 동적 렌더링 -->
-        </div>
-      </div>
-
-      <!-- 사용처 및 목적 -->
-      <div class="card">
-        <div class="card-title">사용처 및 목적 <span class="required">*</span></div>
-        <label for="purpose">사용처 / 행사명 / 목적</label>
-        <textarea id="purpose" placeholder="예: 2024 입학식 행사 기념품 / 본관 대회의실 / 내빈 증정용"></textarea>
-        <p class="hint">⚠️ 장소, 행사명, 사용 목적을 구체적으로 작성해 주세요.</p>
-      </div>
-
-      <!-- 날짜 -->
-      <div class="card">
-        <div class="card-title">신청일 / 사용일</div>
-        <div class="date-row">
-          <div class="form-group">
-            <label for="requestDate">신청일 <span class="required">*</span></label>
-            <input type="date" id="requestDate">
-          </div>
-          <div class="form-group">
-            <label for="useDate">사용일 <span class="required">*</span></label>
-            <input type="date" id="useDate">
-          </div>
-        </div>
-      </div>
-
-      <!-- 제출 -->
-      <button type="submit" class="submit-btn" id="submitBtn">신청 제출</button>
-
-    </form>
-  </div>
-
-  <!-- 관리자 링크 -->
-  <div class="admin-link">
-    <a href="admin.html">관리자 페이지</a>
-  </div>
-
-</div>
-
-<script src="js/form.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="가족 건강 허브 - 가족 모두의 건강을 한 곳에서 관리" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>가족 건강 허브</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

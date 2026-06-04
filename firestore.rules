@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 그룹: 슬러그를 알면 읽기/쓰기 가능
+    match /groups/{groupId} {
+      allow read, write: if true;
+
+      match /members/{memberId} {
+        allow read, write: if true;
+      }
+      match /patients/{patientId} {
+        allow read, write: if true;
+      }
+      match /appointments/{apptId} {
+        allow read, write: if true;
+      }
+      match /records/{recordId} {
+        allow read, write: if true;
+      }
+      match /medications/{medId} {
+        allow read, write: if true;
+      }
+      match /checkups/{checkupId} {
+        allow read, write: if true;
+      }
+      match /activity/{activityId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}

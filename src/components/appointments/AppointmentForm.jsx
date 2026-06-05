@@ -4,7 +4,10 @@ import { addAppointment, updateAppointment } from '../../services/appointments';
 import { uploadAppointmentFile, formatFileSize } from '../../services/storage';
 import { logActivity } from '../../services/groups';
 
-const STATUS_OPTIONS = ['예약완료', '미확인', '진료완료', '취소'];
+const STATUS_OPTIONS = [
+  { value: '예약완료', label: '예약 중' },
+  { value: '진료완료', label: '진료완료' },
+];
 
 export default function AppointmentForm({ groupId, patients, initial, onSuccess, onCancel }) {
   const isEdit = Boolean(initial?.id);
@@ -18,7 +21,7 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
     status: initial?.status || '예약완료',
     note: initial?.note || '',
   });
-  const [existingAttachments] = useState(initial?.attachments || []);
+  const [existingAttachments, setExistingAttachments] = useState(initial?.attachments || []);
   const [newFiles, setNewFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState({});
   const [showFilePicker, setShowFilePicker] = useState(false);
@@ -42,6 +45,10 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
     setNewFiles((prev) => prev.filter((_, idx) => idx !== i));
   }
 
+  function removeExistingAttachment(i) {
+    setExistingAttachments((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!form.patientId || !form.hospital || !form.date) {
@@ -55,7 +62,7 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
       let apptId;
 
       if (isEdit) {
-        await updateAppointment(groupId, initial.id, form);
+        await updateAppointment(groupId, initial.id, { ...form, attachments: existingAttachments });
         apptId = initial.id;
       } else {
         const docRef = await addAppointment(groupId, form);
@@ -119,44 +126,26 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">진료과</label>
-            <input
-              type="text"
-              value={form.dept}
-              onChange={set('dept')}
-              placeholder="예: 내과"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
+            <input type="text" value={form.dept} onChange={set('dept')} placeholder="예: 내과"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">담당의</label>
-            <input
-              type="text"
-              value={form.doctor}
-              onChange={set('doctor')}
-              placeholder="예: 김철수"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
+            <input type="text" value={form.doctor} onChange={set('doctor')} placeholder="예: 김철수"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">날짜 *</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={set('date')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
+            <input type="date" value={form.date} onChange={set('date')}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
-            <input
-              type="time"
-              value={form.time}
-              onChange={set('time')}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
+            <input type="time" value={form.time} onChange={set('time')}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
           </div>
         </div>
 
@@ -165,16 +154,15 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
           <div className="flex gap-2 flex-wrap">
             {STATUS_OPTIONS.map((s) => (
               <button
-                key={s}
+                key={s.value}
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, status: s }))}
+                onClick={() => setForm((f) => ({ ...f, status: s.value }))}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
-                  ${form.status === s
+                  ${form.status === s.value
                     ? 'bg-blue-500 text-white border-blue-500'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
-                  }`}
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'}`}
               >
-                {s}
+                {s.label}
               </button>
             ))}
           </div>
@@ -182,19 +170,12 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">메모</label>
-          <textarea
-            value={form.note}
-            onChange={set('note')}
-            placeholder="추가 메모 사항"
-            rows={3}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
-          />
+          <textarea value={form.note} onChange={set('note')} placeholder="추가 메모 사항" rows={3}
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
         </div>
 
-        {/* 첨부파일 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">첨부파일 (예약증, 백신증 등)</label>
-
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleFileAdd} className="hidden" />
           <input ref={galleryRef} type="file" accept="image/*,video/*" multiple onChange={handleFileAdd} className="hidden" />
           <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.hwp,.txt,image/*" multiple onChange={handleFileAdd} className="hidden" />
@@ -204,10 +185,11 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
               {existingAttachments.map((att, i) => (
                 <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-600">
                   <FileText size={13} className="text-blue-400 flex-shrink-0" />
-                  <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex-1 truncate text-blue-600 hover:underline">
-                    {att.name}
-                  </a>
+                  <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex-1 truncate text-blue-600 hover:underline">{att.name}</a>
                   <span className="text-gray-400 whitespace-nowrap">{formatFileSize(att.size)}</span>
+                  <button type="button" onClick={() => removeExistingAttachment(i)} className="text-gray-400 hover:text-red-400 flex-shrink-0">
+                    <X size={13} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -231,11 +213,8 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={() => setShowFilePicker(true)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-blue-200 rounded-xl text-sm text-blue-400 hover:bg-blue-50 transition-colors"
-          >
+          <button type="button" onClick={() => setShowFilePicker(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-blue-200 rounded-xl text-sm text-blue-400 hover:bg-blue-50 transition-colors">
             <Paperclip size={14} />
             예약증 · 백신증 · 참고 파일 첨부
           </button>
@@ -244,42 +223,27 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         <div className="flex gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
+          <button type="button" onClick={onCancel}
+            className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             취소
           </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 py-3 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-          >
-            {saving ? (
-              <><Loader size={14} className="animate-spin" /> {isUploading ? '업로드 중...' : '저장 중...'}</>
-            ) : (
-              isEdit ? '수정하기' : '등록하기'
-            )}
+          <button type="submit" disabled={saving}
+            className="flex-1 py-3 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+            {saving
+              ? <><Loader size={14} className="animate-spin" /> {isUploading ? '업로드 중...' : '저장 중...'}</>
+              : isEdit ? '수정하기' : '등록하기'}
           </button>
         </div>
       </form>
 
-      {/* 파일 선택 바텀 시트 */}
       {showFilePicker && (
         <div className="fixed inset-0 z-50" onClick={() => setShowFilePicker(false)}>
           <div className="absolute inset-0 bg-black/50" />
-          <div
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 space-y-3 safe-area-pb"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 space-y-3 safe-area-pb" onClick={(e) => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
             <p className="text-sm font-semibold text-gray-700 mb-4 text-center">파일 첨부 방법 선택</p>
-
-            <button
-              onClick={() => cameraRef.current?.click()}
-              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left"
-            >
+            <button onClick={() => cameraRef.current?.click()}
+              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left">
               <div className="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Camera size={22} className="text-blue-600" />
               </div>
@@ -288,11 +252,8 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
                 <p className="text-xs text-gray-400 mt-0.5">지금 바로 촬영하여 첨부</p>
               </div>
             </button>
-
-            <button
-              onClick={() => galleryRef.current?.click()}
-              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left"
-            >
+            <button onClick={() => galleryRef.current?.click()}
+              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left">
               <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Image size={22} className="text-green-600" />
               </div>
@@ -301,11 +262,8 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
                 <p className="text-xs text-gray-400 mt-0.5">사진 및 동영상 앨범에서 선택</p>
               </div>
             </button>
-
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left"
-            >
+            <button onClick={() => fileRef.current?.click()}
+              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left">
               <div className="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Folder size={22} className="text-purple-600" />
               </div>
@@ -314,11 +272,7 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
                 <p className="text-xs text-gray-400 mt-0.5">PDF, 문서, 이미지 파일 선택</p>
               </div>
             </button>
-
-            <button
-              onClick={() => setShowFilePicker(false)}
-              className="w-full py-3 text-sm text-gray-400 hover:text-gray-600 mt-1"
-            >
+            <button onClick={() => setShowFilePicker(false)} className="w-full py-3 text-sm text-gray-400 hover:text-gray-600 mt-1">
               취소
             </button>
           </div>

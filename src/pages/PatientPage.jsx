@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Edit2, ChevronLeft, Trash2, Plus, Hospital, Phone } from 'lucide-react';
+import { User, Edit2, ChevronLeft, Trash2, Plus, Hospital, Phone, FileText } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AppointmentCard from '../components/appointments/AppointmentCard';
@@ -10,12 +10,14 @@ import Modal from '../components/common/Modal';
 import PatientForm from '../components/patients/PatientForm';
 import AppointmentForm from '../components/appointments/AppointmentForm';
 import RecordForm from '../components/records/RecordForm';
+import MedicalReport from '../components/patients/MedicalReport';
 import { useGroup } from '../hooks/useGroup';
 import { usePatients } from '../hooks/usePatients';
 import { useAppointments } from '../hooks/useAppointments';
 import { useRecords } from '../hooks/useRecords';
+import { useMedications } from '../hooks/useMedications';
 import { deletePatient } from '../services/patients';
-import { deleteRecord } from '../services/records';
+import { deleteRecord, updateRecord } from '../services/records';
 import { deleteRecordFile } from '../services/storage';
 import { formatDate } from '../utils/dateUtils';
 
@@ -28,13 +30,14 @@ export default function PatientPage() {
   const { patients, loading: patientsLoading } = usePatients(group?.id);
   const { appointments } = useAppointments(group?.id);
   const { records } = useRecords(group?.id);
+  const { medications } = useMedications(group?.id);
 
   const [activeTab, setActiveTab] = useState(0);
   const [showEditPatient, setShowEditPatient] = useState(false);
   const [showAddAppt, setShowAddAppt] = useState(false);
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [viewingRecord, setViewingRecord] = useState(null);
-  const [editingRecord, setEditingRecord] = useState(null);
+  const [showReport, setShowReport] = useState(false);
 
   if (groupLoading || patientsLoading) return <LoadingSpinner />;
 
@@ -52,6 +55,7 @@ export default function PatientPage() {
 
   const patientAppts = appointments.filter((a) => a.patientId === patientId);
   const patientRecords = records.filter((r) => r.patientId === patientId);
+  const patientMeds = medications?.filter((m) => m.patientId === patientId) || [];
   const age = patient.birth ? new Date().getFullYear() - new Date(patient.birth).getFullYear() : null;
 
   const hospitals = patient.hospitals?.length
@@ -75,9 +79,14 @@ export default function PatientPage() {
     setViewingRecord(null);
   }
 
+  async function handleDeleteRecordAttachment(record, attIndex) {
+    const updated = (record.attachments || []).filter((_, i) => i !== attIndex);
+    await updateRecord(group.id, record.id, { attachments: updated });
+    setViewingRecord((prev) => prev ? { ...prev, attachments: updated } : null);
+  }
+
   return (
     <Layout group={group} title="">
-      {/* 헤더 배너 */}
       <div className={`${patient.color?.bg || 'bg-blue-100'} px-4 pt-4 pb-6`}>
         <button onClick={() => navigate(`/group/${slug}`)} className="flex items-center gap-1 text-sm text-gray-600 mb-4">
           <ChevronLeft size={16} /> 뒤로
@@ -89,12 +98,17 @@ export default function PatientPage() {
           <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-900">{patient.name}</h1>
             <p className={`text-sm ${patient.color?.text || 'text-blue-700'} mt-0.5`}>
-              {patient.role}
-              {age !== null ? ` · 만 ${age}세` : ''}
-              {patient.bloodType ? ` · ${patient.bloodType}형` : ''}
+              {patient.role}{age !== null ? ` · 만 ${age}세` : ''}{patient.bloodType ? ` · ${patient.bloodType}형` : ''}
             </p>
           </div>
           <div className="flex gap-1">
+            <button
+              onClick={() => setShowReport(true)}
+              className="p-2 bg-white/70 rounded-xl"
+              title="의료진 리포트 생성"
+            >
+              <FileText size={16} className="text-blue-600" />
+            </button>
             <button onClick={() => setShowEditPatient(true)} className="p-2 bg-white/70 rounded-xl">
               <Edit2 size={16} className="text-gray-600" />
             </button>
@@ -144,9 +158,16 @@ export default function PatientPage() {
             ))}
           </div>
         )}
+
+        <button
+          onClick={() => setShowReport(true)}
+          className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 bg-white/70 hover:bg-white/90 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+        >
+          <FileText size={14} className="text-blue-500" />
+          의료진 리포트 생성
+        </button>
       </div>
 
-      {/* 탭 */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="flex">
           {TABS.map((tab, i) => (
@@ -226,7 +247,6 @@ export default function PatientPage() {
         <RecordForm groupId={group?.id} patients={patients} appointments={patientAppts} initial={{ patientId }} onSuccess={() => setShowAddRecord(false)} onCancel={() => setShowAddRecord(false)} />
       </Modal>
 
-      {/* 진료 기록 상세 */}
       <Modal isOpen={Boolean(viewingRecord)} onClose={() => setViewingRecord(null)} title="진료 기록 상세">
         {viewingRecord && (
           <RecordDetail
@@ -234,24 +254,20 @@ export default function PatientPage() {
             patient={patient}
             appointment={appointments.find((a) => a.id === viewingRecord.apptId)}
             onDelete={() => handleDeleteRecord(viewingRecord)}
-            onEdit={() => { setEditingRecord(viewingRecord); setViewingRecord(null); }}
+            onDeleteAttachment={(i) => handleDeleteRecordAttachment(viewingRecord, i)}
           />
         )}
       </Modal>
 
-      {/* 진료 기록 수정 */}
-      <Modal isOpen={Boolean(editingRecord)} onClose={() => setEditingRecord(null)} title="진료 기록 수정">
-        {editingRecord && (
-          <RecordForm
-            groupId={group?.id}
-            patients={patients}
-            appointments={patientAppts}
-            initial={editingRecord}
-            onSuccess={() => setEditingRecord(null)}
-            onCancel={() => setEditingRecord(null)}
-          />
-        )}
-      </Modal>
+      {showReport && (
+        <MedicalReport
+          patient={patient}
+          appointments={patientAppts}
+          records={patientRecords}
+          medications={patientMeds}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </Layout>
   );
 }

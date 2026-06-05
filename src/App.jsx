@@ -7,6 +7,7 @@ import AddPage from './pages/AddPage';
 import SettingsPage from './pages/SettingsPage';
 import MedicationsPage from './pages/MedicationsPage';
 import RecordsPage from './pages/RecordsPage';
+import DeletedAppointmentsPage from './pages/DeletedAppointmentsPage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/group/:slug" element={<GroupDashboard />} />
         <Route path="/group/:slug/calendar" element={<CalendarPage />} />
+        <Route path="/group/:slug/deleted-appointments" element={<DeletedAppointmentsPage />} />
         <Route path="/group/:slug/patient/:patientId" element={<PatientPage />} />
         <Route path="/group/:slug/add" element={<AddPage />} />
         <Route path="/group/:slug/medications" element={<MedicationsPage />} />

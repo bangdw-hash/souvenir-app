@@ -114,7 +114,6 @@ export default function ImageParseModal({ groupId, patients, defaultPatientId, o
             type="file"
             accept="image/*"
             multiple
-            capture="environment"
             onChange={handleFileSelect}
             className="hidden"
           />
@@ -126,7 +125,7 @@ export default function ImageParseModal({ groupId, patients, defaultPatientId, o
             <div className="text-center">
               <p className="text-sm font-semibold text-gray-700">사진 선택 (여러 장 가능)</p>
               <p className="text-xs text-gray-400 mt-1">
-                예약 확인 화면 또는 나의 예약현황 스크린샷
+                사진첩 또는 카메라로 쳙영 가능
               </p>
             </div>
           </button>

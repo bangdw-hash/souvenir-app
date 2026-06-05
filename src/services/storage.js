@@ -1,33 +1,23 @@
 import { storage } from '../firebase';
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
-function uploadToPath(path, file, onProgress) {
+async function uploadToPath(path, file, onProgress) {
   const storageRef = ref(storage, path);
-  return new Promise((resolve, reject) => {
-    const task = uploadBytesResumable(storageRef, file);
-    task.on(
-      'state_changed',
-      (snap) => {
-        const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-        onProgress?.(pct);
-      },
-      reject,
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref);
-        resolve({ url, name: file.name, path, size: file.size, type: file.type });
-      }
-    );
-  });
+  onProgress?.(0);
+  const snapshot = await uploadBytes(storageRef, file);
+  onProgress?.(100);
+  const url = await getDownloadURL(snapshot.ref);
+  return { url, name: file.name, path, size: file.size, type: file.type };
 }
 
 export async function uploadRecordFile(groupId, recordId, file, onProgress) {
-  const safeName = file.name.replace(/[^\w가-힣.\-]/g, '_');
+  const safeName = file.name.replace(/[^\w0-鿿.\-]/g, '_');
   const path = `groups/${groupId}/records/${recordId}/${Date.now()}_${safeName}`;
   return uploadToPath(path, file, onProgress);
 }
 
 export async function uploadAppointmentFile(groupId, apptId, file, onProgress) {
-  const safeName = file.name.replace(/[^\w가-힣.\-]/g, '_');
+  const safeName = file.name.replace(/[^\w0-鿿.\-]/g, '_');
   const path = `groups/${groupId}/appointments/${apptId}/${Date.now()}_${safeName}`;
   return uploadToPath(path, file, onProgress);
 }

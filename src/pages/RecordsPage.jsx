@@ -24,6 +24,7 @@ export default function RecordsPage() {
   const [patientFilter, setPatientFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [viewingRecord, setViewingRecord] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
 
   if (groupLoading) return <LoadingSpinner />;
 
@@ -125,6 +126,7 @@ export default function RecordsPage() {
         />
       </Modal>
 
+      {/* 진료 기록 상세 */}
       <Modal
         isOpen={Boolean(viewingRecord)}
         onClose={() => setViewingRecord(null)}
@@ -136,6 +138,25 @@ export default function RecordsPage() {
             patient={getPatient(viewingRecord.patientId)}
             appointment={getAppointment(viewingRecord.apptId)}
             onDelete={() => handleDeleteRecord(viewingRecord)}
+            onEdit={() => { setEditingRecord(viewingRecord); setViewingRecord(null); }}
+          />
+        )}
+      </Modal>
+
+      {/* 진료 기록 수정 */}
+      <Modal
+        isOpen={Boolean(editingRecord)}
+        onClose={() => setEditingRecord(null)}
+        title="진료 기록 수정"
+      >
+        {editingRecord && (
+          <RecordForm
+            groupId={group?.id}
+            patients={patients}
+            appointments={appointments}
+            initial={editingRecord}
+            onSuccess={() => setEditingRecord(null)}
+            onCancel={() => setEditingRecord(null)}
           />
         )}
       </Modal>

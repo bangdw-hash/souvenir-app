@@ -34,6 +34,7 @@ export default function PatientPage() {
   const [showAddAppt, setShowAddAppt] = useState(false);
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [viewingRecord, setViewingRecord] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
 
   if (groupLoading || patientsLoading) return <LoadingSpinner />;
 
@@ -225,6 +226,7 @@ export default function PatientPage() {
         <RecordForm groupId={group?.id} patients={patients} appointments={patientAppts} initial={{ patientId }} onSuccess={() => setShowAddRecord(false)} onCancel={() => setShowAddRecord(false)} />
       </Modal>
 
+      {/* 진료 기록 상세 */}
       <Modal isOpen={Boolean(viewingRecord)} onClose={() => setViewingRecord(null)} title="진료 기록 상세">
         {viewingRecord && (
           <RecordDetail
@@ -232,6 +234,21 @@ export default function PatientPage() {
             patient={patient}
             appointment={appointments.find((a) => a.id === viewingRecord.apptId)}
             onDelete={() => handleDeleteRecord(viewingRecord)}
+            onEdit={() => { setEditingRecord(viewingRecord); setViewingRecord(null); }}
+          />
+        )}
+      </Modal>
+
+      {/* 진료 기록 수정 */}
+      <Modal isOpen={Boolean(editingRecord)} onClose={() => setEditingRecord(null)} title="진료 기록 수정">
+        {editingRecord && (
+          <RecordForm
+            groupId={group?.id}
+            patients={patients}
+            appointments={patientAppts}
+            initial={editingRecord}
+            onSuccess={() => setEditingRecord(null)}
+            onCancel={() => setEditingRecord(null)}
           />
         )}
       </Modal>

@@ -1,8 +1,8 @@
-import { Calendar, Paperclip } from 'lucide-react';
+import { Calendar, Paperclip, Edit2, Trash2 } from 'lucide-react';
 import { formatDateShort } from '../../utils/dateUtils';
 import { formatFileSize } from '../../services/storage';
 
-export default function RecordDetail({ record, patient, appointment, onDelete }) {
+export default function RecordDetail({ record, patient, appointment, onDelete, onEdit }) {
   return (
     <div className="space-y-4 text-sm">
       <div className="flex items-start justify-between gap-2">
@@ -83,14 +83,26 @@ export default function RecordDetail({ record, patient, appointment, onDelete })
         </div>
       )}
 
-      {onDelete && (
-        <div className="pt-2 border-t border-gray-100">
-          <button
-            onClick={onDelete}
-            className="w-full py-3 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors"
-          >
-            진료 기록 삭제
-          </button>
+      {(onEdit || onDelete) && (
+        <div className="pt-2 border-t border-gray-100 flex gap-2">
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 border border-blue-200 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-50 active:bg-blue-100 transition-colors"
+            >
+              <Edit2 size={14} />
+              수정
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors"
+            >
+              <Trash2 size={14} />
+              삭제
+            </button>
+          )}
         </div>
       )}
     </div>

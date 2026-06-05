@@ -208,6 +208,7 @@ function AppointmentDetailCard({ appointment, patient, onEdit, onDelete, onStatu
         appointment={appointment}
         patient={patient}
         onClick={() => setShowActions((v) => !v)}
+        showGcal={true}
       />
       {showActions && (
         <div className="mt-1 bg-white rounded-xl border border-gray-100 shadow-sm p-3 space-y-2">

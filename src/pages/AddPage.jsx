@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { UserPlus, Calendar, FileText, ClipboardPaste, ChevronRight } from 'lucide-react';
+import { UserPlus, Calendar, FileText, ClipboardPaste, ChevronRight, ImageIcon } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Modal from '../components/common/Modal';
 import PatientForm from '../components/patients/PatientForm';
 import AppointmentForm from '../components/appointments/AppointmentForm';
 import RecordForm from '../components/records/RecordForm';
+import ImageParseModal from '../components/common/ImageParseModal';
 import { useGroup } from '../hooks/useGroup';
 import { usePatients } from '../hooks/usePatients';
 import { useAppointments } from '../hooks/useAppointments';
@@ -24,6 +25,7 @@ export default function AddPage() {
   const [parsedAppt, setParsedAppt] = useState(null);
   const [parseError, setParseError] = useState('');
   const [showSmsInput, setShowSmsInput] = useState(false);
+  const [imagePatientId, setImagePatientId] = useState('');
 
   if (groupLoading) return <LoadingSpinner />;
 
@@ -53,6 +55,17 @@ export default function AddPage() {
       desc: '진료 예약을 수동으로 입력합니다',
       color: 'text-indigo-500 bg-indigo-50',
       onClick: () => { setParsedAppt(null); setActiveModal('appointment'); },
+      disabled: patients.length === 0,
+    },
+    {
+      icon: ImageIcon,
+      label: '예약현황 사진 업로드',
+      desc: '예약 확인 이미지에서 일정 자동 파싱',
+      color: 'text-orange-500 bg-orange-50',
+      onClick: () => {
+        setImagePatientId(patients[0]?.id || '');
+        setActiveModal('image');
+      },
       disabled: patients.length === 0,
     },
     {
@@ -141,13 +154,32 @@ export default function AddPage() {
         />
       </Modal>
 
-      <Modal isOpen={activeModal === 'appointment'} onClose={() => { setActiveModal(null); setParsedAppt(null); }} title="진료 일정 추가">
+      <Modal
+        isOpen={activeModal === 'appointment'}
+        onClose={() => { setActiveModal(null); setParsedAppt(null); }}
+        title="진료 일정 추가"
+      >
         <AppointmentForm
           groupId={group?.id}
           patients={patients}
           initial={parsedAppt}
           onSuccess={() => { setActiveModal(null); setParsedAppt(null); navigate(`/group/${slug}/calendar`); }}
           onCancel={() => { setActiveModal(null); setParsedAppt(null); }}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === 'image'}
+        onClose={() => setActiveModal(null)}
+        title="예약현황 사진 파싱"
+        size="lg"
+      >
+        <ImageParseModal
+          groupId={group?.id}
+          patients={patients}
+          defaultPatientId={imagePatientId}
+          onSuccess={() => { setActiveModal(null); navigate(`/group/${slug}/calendar`); }}
+          onClose={() => setActiveModal(null)}
         />
       </Modal>
 

@@ -5,6 +5,7 @@ import CalendarPage from './pages/CalendarPage';
 import PatientPage from './pages/PatientPage';
 import AddPage from './pages/AddPage';
 import SettingsPage from './pages/SettingsPage';
+import MedicationsPage from './pages/MedicationsPage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/group/:slug/calendar" element={<CalendarPage />} />
         <Route path="/group/:slug/patient/:patientId" element={<PatientPage />} />
         <Route path="/group/:slug/add" element={<AddPage />} />
+        <Route path="/group/:slug/medications" element={<MedicationsPage />} />
         <Route path="/group/:slug/settings" element={<SettingsPage />} />
       </Routes>
     </Router>

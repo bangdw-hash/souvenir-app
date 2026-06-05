@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, User, ExternalLink, Share2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, ExternalLink, Share2, Paperclip } from 'lucide-react';
 import StatusBadge from '../common/StatusBadge';
 import ShareSheet from '../common/ShareSheet';
 import { formatDateShort, getDDay } from '../../utils/dateUtils';
@@ -10,6 +10,7 @@ export default function AppointmentCard({ appointment, patient, onClick, compact
   const isPast = appointment.status === '진료완료' || appointment.status === '취소';
   const gcalUrl = showGcal ? buildGoogleCalendarUrl(appointment, patient) : null;
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const attachCount = appointment.attachments?.length || 0;
 
   function handleGcal(e) {
     e.stopPropagation();
@@ -48,6 +49,11 @@ export default function AppointmentCard({ appointment, patient, onClick, compact
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm text-gray-900 truncate">{appointment.hospital}</span>
             <StatusBadge status={appointment.status} />
+            {attachCount > 0 && (
+              <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                <Paperclip size={11} />{attachCount}
+              </span>
+            )}
           </div>
           <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
             <span>{patient?.name}</span>
@@ -76,6 +82,11 @@ export default function AppointmentCard({ appointment, patient, onClick, compact
                 {appointment.dept && (
                   <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                     {appointment.dept}
+                  </span>
+                )}
+                {attachCount > 0 && (
+                  <span className="flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                    <Paperclip size={11} />{attachCount}
                   </span>
                 )}
               </div>

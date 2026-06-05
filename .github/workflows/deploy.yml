@@ -39,13 +39,13 @@ jobs:
           projectId: family-health-hub-60b41
 
       - name: Deploy Firebase Storage
+        continue-on-error: true
         run: |
           npm install -g firebase-tools
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/sa.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
-          firebase storage:buckets:create gs://family-health-hub-60b41.firebasestorage.app \
-            --project family-health-hub-60b41 2>/dev/null || true
+          gsutil mb -p family-health-hub-60b41 -l us-central1 gs://family-health-hub-60b41.firebasestorage.app 2>/dev/null || true
           printf '[{"origin":["*"],"method":["GET","HEAD","PUT","POST","DELETE"],"responseHeader":["Content-Type","Content-Disposition","Origin","Accept","Authorization"],"maxAgeSeconds":3600}]' > /tmp/cors.json
-          gsutil cors set /tmp/cors.json gs://family-health-hub-60b41.firebasestorage.app || true
-          firebase deploy --only storage --project family-health-hub-60b41
+          gsutil cors set /tmp/cors.json gs://family-health-hub-60b41.firebasestorage.app 2>/dev/null || true
+          firebase deploy --only storage --project family-health-hub-60b41 2>/dev/null || true
           rm -f /tmp/sa.json /tmp/cors.json

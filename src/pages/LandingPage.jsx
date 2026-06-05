@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Users, Calendar, Shield, ArrowRight, Link } from 'lucide-react';
+import { Heart, Users, Calendar, Shield, ArrowRight, Link, Share2 } from 'lucide-react';
 import { createGroup } from '../services/groups';
 import { generateSlug } from '../utils/slugify';
 
@@ -12,6 +12,14 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [createdSlug, setCreatedSlug] = useState('');
+  const [recentGroups, setRecentGroups] = useState([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('recentGroups') || '[]');
+      setRecentGroups(stored);
+    } catch {}
+  }, []);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -39,6 +47,19 @@ export default function LandingPage() {
     navigate(`/group/${slug}`);
   }
 
+  function handleShareGroup(g) {
+    const url = `${window.location.origin}/group/${g.slug}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `${g.name} 가족 건강 허브`,
+        text: `${g.name} 그룹에 참여해서 건강 정보를 함께 관리해요!`,
+        url,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard?.writeText(url);
+    }
+  }
+
   if (createdSlug) {
     const url = `${window.location.origin}/group/${createdSlug}`;
     return (
@@ -56,8 +77,23 @@ export default function LandingPage() {
             <p className="text-sm font-medium text-blue-600 break-all">{url}</p>
           </div>
           <button
-            onClick={() => navigator.clipboard?.writeText(url)}
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: `${familyName} 가족 건강 허브`, text: '가족 건강 허브 그룹에 참여하세요!', url }).catch(() => {});
+              } else {
+                navigator.clipboard?.writeText(url);
+              }
+            }}
             className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 rounded-2xl font-medium text-sm hover:bg-gray-200 transition-colors mb-3"
+          >
+            <Share2 size={16} />
+            공유하기
+          </button>
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText(url);
+            }}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 text-gray-500 rounded-2xl font-medium text-sm hover:bg-gray-100 transition-colors mb-3"
           >
             <Link size={16} />
             링크 복사
@@ -102,6 +138,33 @@ export default function LandingPage() {
 
         {!mode && (
           <div className="w-full max-w-sm space-y-3">
+            {recentGroups.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs text-gray-400 mb-2 text-center">최근 방문한 그룹</p>
+                <div className="space-y-2">
+                  {recentGroups.map((g) => (
+                    <div key={g.slug} className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`/group/${g.slug}`)}
+                        className="flex-1 flex items-center gap-2.5 py-3 px-4 bg-white rounded-2xl shadow-sm border border-gray-100 text-left hover:border-blue-200 transition-colors"
+                      >
+                        <Heart size={15} className="text-blue-400 flex-shrink-0" />
+                        <span className="font-semibold text-sm text-gray-800 truncate">{g.name}</span>
+                      </button>
+                      <button
+                        onClick={() => handleShareGroup(g)}
+                        className="w-12 flex items-center justify-center bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-blue-200 transition-colors"
+                        title="그룹 공유"
+                      >
+                        <Share2 size={15} className="text-gray-400" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-gray-200/60 my-4" />
+              </div>
+            )}
+
             <button
               onClick={() => setMode('create')}
               className="w-full py-4 bg-blue-500 text-white rounded-2xl font-semibold text-base shadow-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
@@ -113,7 +176,7 @@ export default function LandingPage() {
               onClick={() => setMode('join')}
               className="w-full py-4 bg-white text-gray-700 rounded-2xl font-semibold text-base shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
             >
-              기존 그룹 참여하기
+              링크로 그룹 참여하기
             </button>
           </div>
         )}
@@ -157,7 +220,7 @@ export default function LandingPage() {
 
         {mode === 'join' && (
           <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-6">
-            <h2 className="font-bold text-gray-900 text-lg mb-4">기존 그룹 참여하기</h2>
+            <h2 className="font-bold text-gray-900 text-lg mb-4">그룹 참여하기</h2>
             <form onSubmit={handleJoin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">그룹 링크 또는 코드</label>

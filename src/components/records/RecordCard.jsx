@@ -1,9 +1,12 @@
-import { FileText, Pill, Calendar } from 'lucide-react';
+import { FileText, Pill, Calendar, Paperclip } from 'lucide-react';
 import { formatDateShort } from '../../utils/dateUtils';
 
 export default function RecordCard({ record, patient, appointment, onClick }) {
   return (
-    <button onClick={onClick} className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all text-left overflow-hidden">
+    <button
+      onClick={onClick}
+      className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all text-left overflow-hidden"
+    >
       <div className={`h-1 ${patient?.color?.dot || 'bg-green-400'}`} />
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -12,22 +15,45 @@ export default function RecordCard({ record, patient, appointment, onClick }) {
               <FileText size={16} className="text-green-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-gray-900">{record.diagnosis || '진단명 없음'}</h3>
-              {patient && <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${patient.color?.bg} ${patient.color?.text}`}>{patient.name}</span>}
+              <h3 className="font-semibold text-sm text-gray-900">
+                {record.diagnosis || '진단명 없음'}
+              </h3>
+              {patient && (
+                <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${patient.color?.bg} ${patient.color?.text}`}>
+                  {patient.name}
+                </span>
+              )}
             </div>
           </div>
-          <span className="text-xs text-gray-400 whitespace-nowrap">{formatDateShort(record.visitDate || record.createdAt)}</span>
+          <span className="text-xs text-gray-400 whitespace-nowrap">
+            {formatDateShort(record.visitDate || record.createdAt)}
+          </span>
         </div>
-        {record.memo && <p className="text-sm text-gray-600 mb-2 line-clamp-2">{record.memo}</p>}
+
+        {record.memo && (
+          <p className="text-sm text-gray-600 mb-2 line-clamp-2">{record.memo}</p>
+        )}
+
         {record.prescriptions?.length > 0 && (
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <Pill size={12} className="text-purple-400" />
-            <span className="line-clamp-1">처방약: {record.prescriptions.join(', ')}</span>
+            <span className="line-clamp-1">
+              처방약: {record.prescriptions.join(', ')}
+            </span>
           </div>
         )}
+
+        {record.attachments?.length > 0 && (
+          <div className="flex items-center gap-1 text-xs text-blue-500 mt-1">
+            <Paperclip size={11} />
+            <span>첨부파일 {record.attachments.length}개</span>
+          </div>
+        )}
+
         {appointment && (
           <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
-            <Calendar size={12} /><span>{appointment.hospital}</span>
+            <Calendar size={12} />
+            <span>{appointment.hospital}</span>
           </div>
         )}
       </div>

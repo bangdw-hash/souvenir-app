@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { FileText, Plus } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import MonthlyCalendar from '../components/calendar/MonthlyCalendar';
 import AppointmentCard from '../components/appointments/AppointmentCard';
 import Modal from '../components/common/Modal';
 import AppointmentForm from '../components/appointments/AppointmentForm';
+import RecordForm from '../components/records/RecordForm';
 import { useGroup } from '../hooks/useGroup';
 import { usePatients } from '../hooks/usePatients';
 import { useAppointments } from '../hooks/useAppointments';
 import { isSameDay, formatDateShort } from '../utils/dateUtils';
 import { deleteAppointment, updateAppointment } from '../services/appointments';
-import { Plus } from 'lucide-react';
 
 export default function CalendarPage() {
   const { slug } = useParams();
@@ -25,6 +26,8 @@ export default function CalendarPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAppt, setEditingAppt] = useState(null);
   const [patientFilter, setPatientFilter] = useState('all');
+  const [recordPromptAppt, setRecordPromptAppt] = useState(null);
+  const [showRecordForm, setShowRecordForm] = useState(false);
 
   if (groupLoading) return <LoadingSpinner />;
 
@@ -46,11 +49,23 @@ export default function CalendarPage() {
 
   async function handleStatusChange(apptId, status) {
     await updateAppointment(group.id, apptId, { status });
+    if (status === '진료완료') {
+      const appt = appointments.find((a) => a.id === apptId);
+      if (appt) {
+        setShowRecordForm(false);
+        setRecordPromptAppt(appt);
+      }
+    }
   }
 
   async function handleDelete(apptId) {
     if (!confirm('이 일정을 삭제하시겠습니까?')) return;
     await deleteAppointment(group.id, apptId);
+  }
+
+  function closeRecordPrompt() {
+    setRecordPromptAppt(null);
+    setShowRecordForm(false);
   }
 
   return (
@@ -169,6 +184,7 @@ export default function CalendarPage() {
         )}
       </div>
 
+      {/* 일정 추가/수정 모달 */}
       <Modal
         isOpen={showAddForm}
         onClose={() => { setShowAddForm(false); setEditingAppt(null); }}
@@ -191,6 +207,56 @@ export default function CalendarPage() {
             initial={editingAppt}
             onSuccess={() => { setShowAddForm(false); setEditingAppt(null); }}
             onCancel={() => { setShowAddForm(false); setEditingAppt(null); }}
+          />
+        )}
+      </Modal>
+
+      {/* 진료완료 → 기록 작성 프롬프트 */}
+      <Modal
+        isOpen={Boolean(recordPromptAppt)}
+        onClose={closeRecordPrompt}
+        title={showRecordForm ? '진료 기록 작성' : '진료 완료'}
+      >
+        {!showRecordForm ? (
+          <div className="text-center space-y-5 py-2">
+            <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto">
+              <FileText size={28} className="text-green-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 mb-2">진료 기록을 작성하시겠어요?</p>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                <span className="font-medium text-gray-700">{recordPromptAppt?.hospital}</span> 진료가
+                완료되었습니다.<br />
+                영수증이나 첨부파일이 있다면 함께 올려주세요.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={closeRecordPrompt}
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                나중에
+              </button>
+              <button
+                onClick={() => setShowRecordForm(true)}
+                className="flex-1 py-3 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 transition-colors"
+              >
+                지금 작성
+              </button>
+            </div>
+          </div>
+        ) : (
+          <RecordForm
+            groupId={group?.id}
+            patients={patients}
+            appointments={appointments}
+            initial={{
+              patientId: recordPromptAppt?.patientId,
+              apptId: recordPromptAppt?.id,
+              visitDate: recordPromptAppt?.date,
+            }}
+            onSuccess={closeRecordPrompt}
+            onCancel={() => setShowRecordForm(false)}
           />
         )}
       </Modal>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Calendar, FileText, Edit2, ChevronLeft, Trash2, Plus } from 'lucide-react';
+import { User, Calendar, FileText, Edit2, ChevronLeft, Trash2, Plus, Paperclip, Hospital, Phone } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AppointmentCard from '../components/appointments/AppointmentCard';
@@ -14,7 +14,8 @@ import { usePatients } from '../hooks/usePatients';
 import { useAppointments } from '../hooks/useAppointments';
 import { useRecords } from '../hooks/useRecords';
 import { deletePatient } from '../services/patients';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, formatDateShort } from '../utils/dateUtils';
+import { formatFileSize } from '../services/storage';
 
 const TABS = ['진료 일정', '진료 기록'];
 
@@ -30,6 +31,7 @@ export default function PatientPage() {
   const [showEditPatient, setShowEditPatient] = useState(false);
   const [showAddAppt, setShowAddAppt] = useState(false);
   const [showAddRecord, setShowAddRecord] = useState(false);
+  const [viewingRecord, setViewingRecord] = useState(null);
 
   if (groupLoading || patientsLoading) return <LoadingSpinner />;
 
@@ -52,6 +54,12 @@ export default function PatientPage() {
   const age = patient.birth
     ? new Date().getFullYear() - new Date(patient.birth).getFullYear()
     : null;
+
+  const hospitals = patient.hospitals?.length
+    ? patient.hospitals
+    : patient.primaryDoctor
+      ? [{ hospital: '', doctor: patient.primaryDoctor, patientNum: patient.insuranceNum || '', coordinator: '', coordinatorPhone: '' }]
+      : [];
 
   async function handleDeletePatient() {
     if (!confirm(`${patient.name}님을 삭제하시겠습니까? 관련 데이터는 유지됩니다.`)) return;
@@ -108,20 +116,51 @@ export default function PatientPage() {
         </div>
 
         {/* 상세 정보 */}
-        {(patient.primaryDoctor || patient.birth) && (
-          <div className="mt-3 bg-white/60 rounded-xl p-3 text-xs text-gray-600 space-y-1">
+        {(patient.birth || hospitals.length > 0) && (
+          <div className="mt-3 bg-white/60 rounded-xl p-3 text-xs text-gray-600 space-y-2">
             {patient.birth && (
               <div className="flex justify-between">
                 <span className="text-gray-400">생년월일</span>
                 <span>{formatDate(patient.birth)}</span>
               </div>
             )}
-            {patient.primaryDoctor && (
-              <div className="flex justify-between">
-                <span className="text-gray-400">주치의</span>
-                <span>{patient.primaryDoctor}</span>
+            {hospitals.map((h, i) => (
+              <div key={i} className={`space-y-1 ${i > 0 ? 'border-t border-white/40 pt-2' : ''}`}>
+                {h.hospital && (
+                  <div className="flex items-center gap-1 font-medium text-gray-700">
+                    <Hospital size={11} className="text-blue-400" />
+                    <span>{h.hospital}</span>
+                  </div>
+                )}
+                {h.doctor && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">담당의</span>
+                    <span>{h.doctor} 선생님</span>
+                  </div>
+                )}
+                {h.patientNum && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">환자번호</span>
+                    <span>{h.patientNum}</span>
+                  </div>
+                )}
+                {h.coordinator && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">코디네이터</span>
+                    <span>{h.coordinator}</span>
+                  </div>
+                )}
+                {h.coordinatorPhone && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">코디 전화</span>
+                    <a href={`tel:${h.coordinatorPhone}`} className="text-blue-600 flex items-center gap-0.5">
+                      <Phone size={10} />
+                      {h.coordinatorPhone}
+                    </a>
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
         )}
       </div>
@@ -188,6 +227,7 @@ export default function PatientPage() {
                   record={r}
                   patient={patient}
                   appointment={appointments.find((a) => a.id === r.apptId)}
+                  onClick={() => setViewingRecord(r)}
                 />
               ))
             )}
@@ -224,6 +264,89 @@ export default function PatientPage() {
           onCancel={() => setShowAddRecord(false)}
         />
       </Modal>
+
+      {/* 진료 기록 상세 보기 */}
+      <Modal isOpen={Boolean(viewingRecord)} onClose={() => setViewingRecord(null)} title="진료 기록 상세">
+        {viewingRecord && (
+          <RecordDetail
+            record={viewingRecord}
+            patient={patient}
+            appointment={appointments.find((a) => a.id === viewingRecord.apptId)}
+          />
+        )}
+      </Modal>
     </Layout>
+  );
+}
+
+function RecordDetail({ record, patient, appointment }) {
+  return (
+    <div className="space-y-4 text-sm">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold text-gray-900 text-base">{record.diagnosis || '진단명 없음'}</h3>
+          {patient && (
+            <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${patient.color?.bg} ${patient.color?.text}`}>
+              {patient.name}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-gray-400">{formatDateShort(record.visitDate || record.createdAt)}</span>
+      </div>
+
+      {appointment && (
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+          <Calendar size={12} />
+          <span>{appointment.hospital}</span>
+          {appointment.date && <span>· {appointment.date}</span>}
+        </div>
+      )}
+
+      {record.memo && (
+        <div>
+          <p className="text-xs font-medium text-gray-500 mb-1">소견 / 메모</p>
+          <p className="text-gray-700 bg-gray-50 rounded-lg p-3 text-sm leading-relaxed">{record.memo}</p>
+        </div>
+      )}
+
+      {record.prescriptions?.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-gray-500 mb-1.5">처방약</p>
+          <div className="flex flex-wrap gap-1.5">
+            {record.prescriptions.map((p, i) => (
+              <span key={i} className="text-xs px-2.5 py-1 bg-purple-50 text-purple-700 rounded-full">{p}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {record.nextVisitDate && (
+        <div className="flex items-center justify-between text-xs bg-blue-50 rounded-lg px-3 py-2">
+          <span className="text-gray-500">다음 예약일</span>
+          <span className="font-medium text-blue-700">{record.nextVisitDate}</span>
+        </div>
+      )}
+
+      {record.attachments?.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-gray-500 mb-1.5">첨부파일</p>
+          <div className="space-y-1.5">
+            {record.attachments.map((att, i) => (
+              <a
+                key={i}
+                href={att.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2.5 hover:bg-blue-50 transition-colors"
+              >
+                <Paperclip size={13} className="text-blue-400 flex-shrink-0" />
+                <span className="flex-1 truncate text-blue-600 text-xs">{att.name}</span>
+                <span className="text-gray-400 text-xs whitespace-nowrap">{formatFileSize(att.size)}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Calendar, Clock, MapPin, User, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, ExternalLink, Share2 } from 'lucide-react';
 import StatusBadge from '../common/StatusBadge';
 import { formatDateShort, getDDay } from '../../utils/dateUtils';
 import { buildGoogleCalendarUrl } from '../../utils/googleCalendar';
@@ -11,6 +11,23 @@ export default function AppointmentCard({ appointment, patient, onClick, compact
   function handleGcal(e) {
     e.stopPropagation();
     if (gcalUrl) window.open(gcalUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  function handleShare(e) {
+    e.stopPropagation();
+    const text = [
+      `📅 진료 예약 안내`,
+      `병원: ${appointment.hospital}${appointment.dept ? ` (${appointment.dept})` : ''}`,
+      `날짜: ${appointment.date}${appointment.time ? ` ${appointment.time}` : ''}`,
+      appointment.doctor ? `담당의: ${appointment.doctor} 선생님` : '',
+      appointment.note ? `메모: ${appointment.note}` : '',
+    ].filter(Boolean).join('\n');
+
+    if (navigator.share) {
+      navigator.share({ title: `${appointment.hospital} 진료 예약`, text }).catch(() => {});
+    } else {
+      navigator.clipboard?.writeText(text);
+    }
   }
 
   if (compact) {
@@ -91,23 +108,30 @@ export default function AppointmentCard({ appointment, patient, onClick, compact
         </div>
 
         {appointment.note && (
-          <p className="mt-3 text-xs text-gray-500 bg-gray-50 rounded-lg p-2 line-clamp-2">
+          <p className="mt-3 text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
             {appointment.note}
           </p>
         )}
       </button>
 
-      {gcalUrl && !isPast && (
-        <div className="px-4 pb-3">
+      <div className="px-4 pb-3 flex gap-2">
+        {gcalUrl && !isPast && (
           <button
             onClick={handleGcal}
-            className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors border border-blue-100"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors border border-blue-100"
           >
             <ExternalLink size={12} />
-            구글 캘린더에 추가
+            구글 캘린더
           </button>
-        </div>
-      )}
+        )}
+        <button
+          onClick={handleShare}
+          className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors border border-gray-100"
+        >
+          <Share2 size={12} />
+          공유
+        </button>
+      </div>
     </div>
   );
 }

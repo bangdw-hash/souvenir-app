@@ -6,7 +6,6 @@ export default function ShareSheet({ isOpen, onClose, title, text, url }) {
 
   const fullText = [text, url].filter(Boolean).join('\n');
 
-  // Auto-copy to clipboard the moment the sheet opens
   useEffect(() => {
     if (!isOpen) { setAutoCopied(false); return; }
     navigator.clipboard?.writeText(fullText || url || '').then(() => {
@@ -43,12 +42,11 @@ export default function ShareSheet({ isOpen, onClose, title, text, url }) {
           </button>
         </div>
 
-        {/* Auto-copy status */}
         <div className={`flex items-center gap-2 rounded-xl px-4 py-3 mb-4 text-sm transition-colors
           ${autoCopied ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
           <Check size={15} className={autoCopied ? 'text-green-500' : 'text-gray-300'} />
           <span className="font-medium">
-            {autoCopied ? '텍스트가 클립보드에 복사되었어요' : '클립보드 복사 중...'}
+            {autoCopied ? '텍스트가 클립보드에 복사됐어요' : '클립보드 복사 중...'}
           </span>
         </div>
 

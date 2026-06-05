@@ -35,10 +35,7 @@ export function scheduleTodayMedications(medications, patients) {
       const delay = fireAt.getTime() - now.getTime();
       if (delay > 0) {
         setTimeout(() => {
-          showNotification(
-            '💊 복약 시간',
-            `${patientName} - ${med.name}${med.dosage ? ` (${med.dosage})` : ''} 복용 시간입니다.`
-          );
+          showNotification('💊 복약 시간', `${patientName} - ${med.name}${med.dosage ? ` (${med.dosage})` : ''} 복용 시간입니다.`);
         }, delay);
       }
     }

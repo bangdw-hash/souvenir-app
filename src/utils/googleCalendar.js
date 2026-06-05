@@ -19,22 +19,9 @@ export function buildGoogleCalendarUrl(appointment, patient) {
     endDt = dateStr;
   }
 
-  const details = [
-    patientName ? `환자: ${patientName}` : '',
-    dept ? `진료과: ${dept}` : '',
-    doctor ? `담당의: ${doctor} 선생님` : '',
-    note ? `메모: ${note}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const details = [patientName ? `환자: ${patientName}` : '', dept ? `진료과: ${dept}` : '', doctor ? `담당의: ${doctor} 선생님` : '', note ? `메모: ${note}` : ''].filter(Boolean).join('\n');
 
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: title,
-    dates: `${startDt}/${endDt}`,
-    details,
-    location: hospital || '',
-  });
+  const params = new URLSearchParams({ action: 'TEMPLATE', text: title, dates: `${startDt}/${endDt}`, details, location: hospital || '' });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }

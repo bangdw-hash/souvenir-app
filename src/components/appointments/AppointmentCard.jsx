@@ -29,8 +29,8 @@ export default function AppointmentCard({ appointment, patient, onClick, compact
     ].filter(Boolean).join('\n');
 
     if (navigator.share) {
-      navigator.share({ title: shareTitle, text: shareText }).catch(() => {
-        setShowShareSheet(true);
+      navigator.share({ title: shareTitle, text: shareText }).catch((err) => {
+        if (err.name !== 'AbortError') setShowShareSheet(true);
       });
     } else {
       setShowShareSheet(true);

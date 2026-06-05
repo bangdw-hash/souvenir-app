@@ -70,7 +70,9 @@ export default function SettingsPage() {
       url,
     };
     if (navigator.share) {
-      navigator.share(shareData).catch(() => setShareTarget(shareData));
+      navigator.share(shareData).catch((err) => {
+        if (err.name !== 'AbortError') setShareTarget(shareData);
+      });
     } else {
       setShareTarget(shareData);
     }

@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Users, Bell, Share2, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Plus, Trash2, Users, Bell, Share2, Info, BellOff, BellRing, ChevronRight } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Modal from '../components/common/Modal';
+import ShareSheet from '../components/common/ShareSheet';
 import { useGroup } from '../hooks/useGroup';
 import { usePatients } from '../hooks/usePatients';
 import { addMember, deleteMember } from '../services/groups';
@@ -12,7 +13,6 @@ const ROLES = ['부모', '자녀', '조부모', '기타'];
 
 export default function SettingsPage() {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const { group, members, loading: groupLoading } = useGroup(slug);
   const { patients } = usePatients(group?.id);
 
@@ -20,7 +20,25 @@ export default function SettingsPage() {
   const [memberForm, setMemberForm] = useState({ name: '', phone: '', role: '기타' });
   const [saving, setSaving] = useState(false);
   const [memberError, setMemberError] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [shareTarget, setShareTarget] = useState(null);
+  const [notifPermission, setNotifPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
+  );
+
+  useEffect(() => {
+    if (typeof Notification !== 'undefined') {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  async function requestNotifications() {
+    if (typeof Notification === 'undefined') return;
+    const result = await Notification.requestPermission();
+    setNotifPermission(result);
+    if (result === 'granted') {
+      new Notification('가족 건강 허브', { body: '알림이 활성화되었습니다.' });
+    }
+  }
 
   if (groupLoading) return <LoadingSpinner />;
 
@@ -44,11 +62,18 @@ export default function SettingsPage() {
     await deleteMember(group.id, memberId);
   }
 
-  function copyLink() {
+  function shareLink() {
     const url = `${window.location.origin}/group/${slug}`;
-    navigator.clipboard?.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const shareData = {
+      title: `${group?.name} 가족 건강 허브`,
+      text: `${group?.name} 그룹에 참여해서 건강 정보를 함께 관리해요!`,
+      url,
+    };
+    if (navigator.share) {
+      navigator.share(shareData).catch(() => setShareTarget(shareData));
+    } else {
+      setShareTarget(shareData);
+    }
   }
 
   return (
@@ -94,11 +119,60 @@ export default function SettingsPage() {
               </p>
             </div>
             <button
-              onClick={copyLink}
+              onClick={shareLink}
               className="w-full py-3 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 transition-colors"
             >
-              {copied ? '복사됨!' : '링크 복사하기'}
+              공유하기
             </button>
+          </div>
+        </section>
+
+        {/* 알림 설정 */}
+        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-50">
+            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Bell size={14} className="text-blue-500" /> 알림 설정
+            </h3>
+          </div>
+          <div className="p-4 space-y-3">
+            {notifPermission === 'unsupported' ? (
+              <p className="text-sm text-gray-400">이 브라우저는 알림을 지원하지 않습니다.</p>
+            ) : notifPermission === 'granted' ? (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <BellRing size={18} className="text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">알림 활성화됨</p>
+                  <p className="text-xs text-gray-400 mt-0.5">브라우저 알림이 허용되어 있습니다.</p>
+                </div>
+              </div>
+            ) : notifPermission === 'denied' ? (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <BellOff size={18} className="text-red-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">알림이 차단됨</p>
+                  <p className="text-xs text-gray-400 mt-0.5">브라우저 설정에서 알림을 허용해 주세요.</p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-gray-400 mb-3">
+                  진료 일정 알림을 받으려면 브라우저 알림을 허용해 주세요.
+                </p>
+                <button
+                  onClick={requestNotifications}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 rounded-xl text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Bell size={15} /> 알림 허용하기
+                  </span>
+                  <ChevronRight size={15} />
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
@@ -141,21 +215,15 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Phase 정보 */}
-        <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4">
-          <div className="flex items-start gap-3">
-            <Bell size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-blue-800 mb-1">Phase 2 예정 기능</p>
-              <ul className="text-xs text-blue-600 space-y-1">
-                <li>· 카카오톡 문자 파싱 고도화</li>
-                <li>· 복약 관리 캘린더</li>
-                <li>· CoolSMS 문자 알림 연동</li>
-              </ul>
-            </div>
-          </div>
-        </section>
       </div>
+
+      <ShareSheet
+        isOpen={Boolean(shareTarget)}
+        onClose={() => setShareTarget(null)}
+        title={shareTarget?.title}
+        text={shareTarget?.text}
+        url={shareTarget?.url}
+      />
 
       <Modal isOpen={showAddMember} onClose={() => setShowAddMember(false)} title="알림 수신자 추가">
         <form onSubmit={handleAddMember} className="space-y-4">

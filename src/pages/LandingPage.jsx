@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Users, Calendar, Shield, ArrowRight, Link, Share2 } from 'lucide-react';
+import { Heart, Users, Calendar, Shield, ArrowRight, Link } from 'lucide-react';
 import { createGroup } from '../services/groups';
 import { generateSlug } from '../utils/slugify';
+import ShareSheet from '../components/common/ShareSheet';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState(null); // 'create' | 'join'
+  const [mode, setMode] = useState(null);
   const [familyName, setFamilyName] = useState('');
   const [joinSlug, setJoinSlug] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [createdSlug, setCreatedSlug] = useState('');
   const [recentGroups, setRecentGroups] = useState([]);
+  const [shareTarget, setShareTarget] = useState(null); // { title, text, url }
 
   useEffect(() => {
     try {
@@ -39,29 +41,41 @@ export default function LandingPage() {
 
   function handleJoin(e) {
     e.preventDefault();
-    const slug = joinSlug
-      .trim()
-      .replace(/.*\/group\//, '')
-      .trim();
+    const slug = joinSlug.trim().replace(/.*\/group\//, '').trim();
     if (!slug) return;
     navigate(`/group/${slug}`);
   }
 
-  function handleShareGroup(g) {
+  function openShare(g) {
     const url = `${window.location.origin}/group/${g.slug}`;
+    const shareData = {
+      title: `${g.name} 가족 건강 허브`,
+      text: `${g.name} 그룹에 참여해서 건강 정보를 함께 관리해요!`,
+      url,
+    };
     if (navigator.share) {
-      navigator.share({
-        title: `${g.name} 가족 건강 허브`,
-        text: `${g.name} 그룹에 참여해서 건강 정보를 함께 관리해요!`,
-        url,
-      }).catch(() => {});
+      navigator.share(shareData).catch(() => setShareTarget(shareData));
     } else {
-      navigator.clipboard?.writeText(url);
+      setShareTarget(shareData);
     }
   }
 
   if (createdSlug) {
     const url = `${window.location.origin}/group/${createdSlug}`;
+    const shareData = {
+      title: `${familyName} 가족 건강 허브`,
+      text: '가족 건강 허브 그룹에 참여하세요!',
+      url,
+    };
+
+    function handleShareCreated() {
+      if (navigator.share) {
+        navigator.share(shareData).catch(() => setShareTarget(shareData));
+      } else {
+        setShareTarget(shareData);
+      }
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-sm text-center">
@@ -69,42 +83,39 @@ export default function LandingPage() {
             <Heart size={32} className="text-green-500" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">그룹이 생성되었습니다!</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            아래 링크를 가족에게 공유하세요.
-          </p>
+          <p className="text-gray-500 text-sm mb-6">아래 링크를 가족에게 공유하세요.</p>
           <div className="bg-gray-50 rounded-2xl p-4 mb-4">
             <p className="text-xs text-gray-400 mb-1">그룹 링크</p>
             <p className="text-sm font-medium text-blue-600 break-all">{url}</p>
           </div>
           <button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({ title: `${familyName} 가족 건강 허브`, text: '가족 건강 허브 그룹에 참여하세요!', url }).catch(() => {});
-              } else {
-                navigator.clipboard?.writeText(url);
-              }
-            }}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 rounded-2xl font-medium text-sm hover:bg-gray-200 transition-colors mb-3"
+            onClick={handleShareCreated}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-blue-500 text-white rounded-2xl font-semibold text-sm hover:bg-blue-600 transition-colors mb-3"
           >
-            <Share2 size={16} />
-            공유하기
+            <Heart size={16} />
+            가족에게 공유하기
           </button>
           <button
-            onClick={() => {
-              navigator.clipboard?.writeText(url);
-            }}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 text-gray-500 rounded-2xl font-medium text-sm hover:bg-gray-100 transition-colors mb-3"
+            onClick={() => navigator.clipboard?.writeText(url)}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-600 rounded-2xl font-medium text-sm hover:bg-gray-200 transition-colors mb-3"
           >
             <Link size={16} />
             링크 복사
           </button>
           <button
             onClick={() => navigate(`/group/${createdSlug}`)}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-600 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 text-gray-700 rounded-2xl font-semibold text-sm hover:bg-gray-50 transition-colors"
           >
             시작하기 <ArrowRight size={16} />
           </button>
         </div>
+        <ShareSheet
+          isOpen={Boolean(shareTarget)}
+          onClose={() => setShareTarget(null)}
+          title={shareTarget?.title}
+          text={shareTarget?.text}
+          url={shareTarget?.url}
+        />
       </div>
     );
   }
@@ -152,11 +163,11 @@ export default function LandingPage() {
                         <span className="font-semibold text-sm text-gray-800 truncate">{g.name}</span>
                       </button>
                       <button
-                        onClick={() => handleShareGroup(g)}
+                        onClick={() => openShare(g)}
                         className="w-12 flex items-center justify-center bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-blue-200 transition-colors"
                         title="그룹 공유"
                       >
-                        <Share2 size={15} className="text-gray-400" />
+                        <Heart size={14} className="text-blue-300" />
                       </button>
                     </div>
                   ))}
@@ -195,9 +206,7 @@ export default function LandingPage() {
                   autoFocus
                   className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
-                <p className="text-xs text-gray-400 mt-1">
-                  그룹 링크에 사용됩니다.
-                </p>
+                <p className="text-xs text-gray-400 mt-1">그룹 링크에 사용됩니다.</p>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <button
@@ -207,11 +216,7 @@ export default function LandingPage() {
               >
                 {loading ? '생성 중...' : '그룹 만들기'}
               </button>
-              <button
-                type="button"
-                onClick={() => setMode(null)}
-                className="w-full py-2 text-gray-400 text-sm hover:text-gray-600"
-              >
+              <button type="button" onClick={() => setMode(null)} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600">
                 돌아가기
               </button>
             </form>
@@ -240,17 +245,21 @@ export default function LandingPage() {
               >
                 참여하기
               </button>
-              <button
-                type="button"
-                onClick={() => setMode(null)}
-                className="w-full py-2 text-gray-400 text-sm hover:text-gray-600"
-              >
+              <button type="button" onClick={() => setMode(null)} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600">
                 돌아가기
               </button>
             </form>
           </div>
         )}
       </div>
+
+      <ShareSheet
+        isOpen={Boolean(shareTarget)}
+        onClose={() => setShareTarget(null)}
+        title={shareTarget?.title}
+        text={shareTarget?.text}
+        url={shareTarget?.url}
+      />
     </div>
   );
 }

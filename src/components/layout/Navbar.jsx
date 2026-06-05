@@ -1,12 +1,12 @@
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Home, Calendar, Plus, Settings, Pill } from 'lucide-react';
+import { Home, Calendar, Plus, FileText, Pill } from 'lucide-react';
 
 const navItems = [
   { to: '', icon: Home, label: '홈' },
   { to: '/calendar', icon: Calendar, label: '캘린더' },
   { to: '/add', icon: Plus, label: '추가', highlight: true },
   { to: '/medications', icon: Pill, label: '복약' },
-  { to: '/settings', icon: Settings, label: '설정' },
+  { to: '/records', icon: FileText, label: '기록' },
 ];
 
 export default function Navbar({ group }) {

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Calendar, FileText, Edit2, ChevronLeft, Trash2, Plus, Paperclip, Hospital, Phone } from 'lucide-react';
+import { User, Edit2, ChevronLeft, Trash2, Plus, Hospital, Phone } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AppointmentCard from '../components/appointments/AppointmentCard';
 import RecordCard from '../components/records/RecordCard';
+import RecordDetail from '../components/records/RecordDetail';
 import Modal from '../components/common/Modal';
 import PatientForm from '../components/patients/PatientForm';
 import AppointmentForm from '../components/appointments/AppointmentForm';
@@ -14,8 +15,9 @@ import { usePatients } from '../hooks/usePatients';
 import { useAppointments } from '../hooks/useAppointments';
 import { useRecords } from '../hooks/useRecords';
 import { deletePatient } from '../services/patients';
-import { formatDate, formatDateShort } from '../utils/dateUtils';
-import { formatFileSize } from '../services/storage';
+import { deleteRecord } from '../services/records';
+import { deleteRecordFile } from '../services/storage';
+import { formatDate } from '../utils/dateUtils';
 
 const TABS = ['진료 일정', '진료 기록'];
 
@@ -41,9 +43,7 @@ export default function PatientPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-3">구성원을 찾을 수 없습니다.</p>
-          <button onClick={() => navigate(`/group/${slug}`)} className="text-blue-500 text-sm">
-            돌아가기
-          </button>
+          <button onClick={() => navigate(`/group/${slug}`)} className="text-blue-500 text-sm">돌아가기</button>
         </div>
       </div>
     );
@@ -51,9 +51,7 @@ export default function PatientPage() {
 
   const patientAppts = appointments.filter((a) => a.patientId === patientId);
   const patientRecords = records.filter((r) => r.patientId === patientId);
-  const age = patient.birth
-    ? new Date().getFullYear() - new Date(patient.birth).getFullYear()
-    : null;
+  const age = patient.birth ? new Date().getFullYear() - new Date(patient.birth).getFullYear() : null;
 
   const hospitals = patient.hospitals?.length
     ? patient.hospitals
@@ -67,14 +65,20 @@ export default function PatientPage() {
     navigate(`/group/${slug}`);
   }
 
+  async function handleDeleteRecord(record) {
+    if (!confirm('이 진료 기록을 삭제하시겠습니까?')) return;
+    for (const att of record.attachments || []) {
+      if (att.path) await deleteRecordFile(att.path).catch(() => {});
+    }
+    await deleteRecord(group.id, record.id);
+    setViewingRecord(null);
+  }
+
   return (
     <Layout group={group} title="">
       {/* 헤더 배너 */}
       <div className={`${patient.color?.bg || 'bg-blue-100'} px-4 pt-4 pb-6`}>
-        <button
-          onClick={() => navigate(`/group/${slug}`)}
-          className="flex items-center gap-1 text-sm text-gray-600 mb-4"
-        >
+        <button onClick={() => navigate(`/group/${slug}`)} className="flex items-center gap-1 text-sm text-gray-600 mb-4">
           <ChevronLeft size={16} /> 뒤로
         </button>
         <div className="flex items-center gap-4">
@@ -90,22 +94,15 @@ export default function PatientPage() {
             </p>
           </div>
           <div className="flex gap-1">
-            <button
-              onClick={() => setShowEditPatient(true)}
-              className="p-2 bg-white/70 rounded-xl"
-            >
+            <button onClick={() => setShowEditPatient(true)} className="p-2 bg-white/70 rounded-xl">
               <Edit2 size={16} className="text-gray-600" />
             </button>
-            <button
-              onClick={handleDeletePatient}
-              className="p-2 bg-white/70 rounded-xl"
-            >
+            <button onClick={handleDeletePatient} className="p-2 bg-white/70 rounded-xl">
               <Trash2 size={16} className="text-red-400" />
             </button>
           </div>
         </div>
 
-        {/* 기저질환 / 알레르기 태그 */}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {patient.conditions?.split(',').filter(Boolean).map((c, i) => (
             <span key={i} className="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full">{c.trim()}</span>
@@ -115,7 +112,6 @@ export default function PatientPage() {
           ))}
         </div>
 
-        {/* 상세 정보 */}
         {(patient.birth || hospitals.length > 0) && (
           <div className="mt-3 bg-white/60 rounded-xl p-3 text-xs text-gray-600 space-y-2">
             {patient.birth && (
@@ -132,30 +128,14 @@ export default function PatientPage() {
                     <span>{h.hospital}</span>
                   </div>
                 )}
-                {h.doctor && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">담당의</span>
-                    <span>{h.doctor} 선생님</span>
-                  </div>
-                )}
-                {h.patientNum && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">환자번호</span>
-                    <span>{h.patientNum}</span>
-                  </div>
-                )}
-                {h.coordinator && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">코디네이터</span>
-                    <span>{h.coordinator}</span>
-                  </div>
-                )}
+                {h.doctor && <div className="flex justify-between"><span className="text-gray-400">담당의</span><span>{h.doctor} 선생님</span></div>}
+                {h.patientNum && <div className="flex justify-between"><span className="text-gray-400">환자번호</span><span>{h.patientNum}</span></div>}
+                {h.coordinator && <div className="flex justify-between"><span className="text-gray-400">코디네이터</span><span>{h.coordinator}</span></div>}
                 {h.coordinatorPhone && (
                   <div className="flex justify-between">
                     <span className="text-gray-400">코디 전화</span>
                     <a href={`tel:${h.coordinatorPhone}`} className="text-blue-600 flex items-center gap-0.5">
-                      <Phone size={10} />
-                      {h.coordinatorPhone}
+                      <Phone size={10} />{h.coordinatorPhone}
                     </a>
                   </div>
                 )}
@@ -173,9 +153,7 @@ export default function PatientPage() {
               key={tab}
               onClick={() => setActiveTab(i)}
               className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors
-                ${activeTab === i
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500'}`}
+                ${activeTab === i ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}
             >
               {tab}
               <span className="ml-1 text-xs text-gray-400">
@@ -236,117 +214,27 @@ export default function PatientPage() {
       </div>
 
       <Modal isOpen={showEditPatient} onClose={() => setShowEditPatient(false)} title="구성원 정보 수정">
-        <PatientForm
-          groupId={group?.id}
-          initial={patient}
-          onSuccess={() => setShowEditPatient(false)}
-          onCancel={() => setShowEditPatient(false)}
-        />
+        <PatientForm groupId={group?.id} initial={patient} onSuccess={() => setShowEditPatient(false)} onCancel={() => setShowEditPatient(false)} />
       </Modal>
 
       <Modal isOpen={showAddAppt} onClose={() => setShowAddAppt(false)} title="진료 일정 추가">
-        <AppointmentForm
-          groupId={group?.id}
-          patients={patients}
-          initial={{ patientId }}
-          onSuccess={() => setShowAddAppt(false)}
-          onCancel={() => setShowAddAppt(false)}
-        />
+        <AppointmentForm groupId={group?.id} patients={patients} initial={{ patientId }} onSuccess={() => setShowAddAppt(false)} onCancel={() => setShowAddAppt(false)} />
       </Modal>
 
       <Modal isOpen={showAddRecord} onClose={() => setShowAddRecord(false)} title="진료 기록 추가">
-        <RecordForm
-          groupId={group?.id}
-          patients={patients}
-          appointments={patientAppts}
-          initial={{ patientId }}
-          onSuccess={() => setShowAddRecord(false)}
-          onCancel={() => setShowAddRecord(false)}
-        />
+        <RecordForm groupId={group?.id} patients={patients} appointments={patientAppts} initial={{ patientId }} onSuccess={() => setShowAddRecord(false)} onCancel={() => setShowAddRecord(false)} />
       </Modal>
 
-      {/* 진료 기록 상세 보기 */}
       <Modal isOpen={Boolean(viewingRecord)} onClose={() => setViewingRecord(null)} title="진료 기록 상세">
         {viewingRecord && (
           <RecordDetail
             record={viewingRecord}
             patient={patient}
             appointment={appointments.find((a) => a.id === viewingRecord.apptId)}
+            onDelete={() => handleDeleteRecord(viewingRecord)}
           />
         )}
       </Modal>
     </Layout>
-  );
-}
-
-function RecordDetail({ record, patient, appointment }) {
-  return (
-    <div className="space-y-4 text-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold text-gray-900 text-base">{record.diagnosis || '진단명 없음'}</h3>
-          {patient && (
-            <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${patient.color?.bg} ${patient.color?.text}`}>
-              {patient.name}
-            </span>
-          )}
-        </div>
-        <span className="text-xs text-gray-400">{formatDateShort(record.visitDate || record.createdAt)}</span>
-      </div>
-
-      {appointment && (
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-          <Calendar size={12} />
-          <span>{appointment.hospital}</span>
-          {appointment.date && <span>· {appointment.date}</span>}
-        </div>
-      )}
-
-      {record.memo && (
-        <div>
-          <p className="text-xs font-medium text-gray-500 mb-1">소견 / 메모</p>
-          <p className="text-gray-700 bg-gray-50 rounded-lg p-3 text-sm leading-relaxed">{record.memo}</p>
-        </div>
-      )}
-
-      {record.prescriptions?.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-gray-500 mb-1.5">처방약</p>
-          <div className="flex flex-wrap gap-1.5">
-            {record.prescriptions.map((p, i) => (
-              <span key={i} className="text-xs px-2.5 py-1 bg-purple-50 text-purple-700 rounded-full">{p}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {record.nextVisitDate && (
-        <div className="flex items-center justify-between text-xs bg-blue-50 rounded-lg px-3 py-2">
-          <span className="text-gray-500">다음 예약일</span>
-          <span className="font-medium text-blue-700">{record.nextVisitDate}</span>
-        </div>
-      )}
-
-      {record.attachments?.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-gray-500 mb-1.5">첨부파일</p>
-          <div className="space-y-1.5">
-            {record.attachments.map((att, i) => (
-              <a
-                key={i}
-                href={att.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2.5 hover:bg-blue-50 transition-colors"
-              >
-                <Paperclip size={13} className="text-blue-400 flex-shrink-0" />
-                <span className="flex-1 truncate text-blue-600 text-xs">{att.name}</span>
-                <span className="text-gray-400 text-xs whitespace-nowrap">{formatFileSize(att.size)}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
   );
 }

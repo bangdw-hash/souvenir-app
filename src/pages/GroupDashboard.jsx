@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Copy, Bell, Activity, User, Calendar } from 'lucide-react';
+import { Plus, Settings, Bell, Activity, User, Calendar } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AppointmentCard from '../components/appointments/AppointmentCard';
@@ -20,9 +20,7 @@ export default function GroupDashboard() {
   const { appointments, loading: apptLoading } = useAppointments(group?.id);
 
   const [showPatientForm, setShowPatientForm] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  const loading = groupLoading || patientsLoading || apptLoading;
 
   if (groupLoading) return <LoadingSpinner text="그룹 정보를 불러오는 중..." />;
   if (error) {
@@ -49,11 +47,6 @@ export default function GroupDashboard() {
     .filter((a) => a.date >= todayStr && a.date <= nextWeekStr && a.status !== '취소')
     .slice(0, 5);
 
-  const recentAppts = appointments
-    .filter((a) => a.date < todayStr)
-    .slice(-3)
-    .reverse();
-
   function getPatient(patientId) {
     return patients.find((p) => p.id === patientId);
   }
@@ -62,24 +55,16 @@ export default function GroupDashboard() {
     return appointments.filter((a) => a.patientId === patientId).length;
   }
 
-  function copyLink() {
-    const url = `${window.location.origin}/group/${slug}`;
-    navigator.clipboard?.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   return (
     <Layout
       group={group}
       title={group?.name || '가족 건강 허브'}
       headerRight={
         <button
-          onClick={copyLink}
-          className="flex items-center gap-1.5 text-xs text-blue-500 bg-blue-50 px-3 py-1.5 rounded-full"
+          onClick={() => navigate(`/group/${slug}/settings`)}
+          className="flex items-center justify-center w-9 h-9 bg-gray-100 rounded-xl"
         >
-          <Copy size={12} />
-          {copied ? '복사됨!' : '링크 공유'}
+          <Settings size={16} className="text-gray-600" />
         </button>
       }
     >

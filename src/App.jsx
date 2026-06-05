@@ -6,6 +6,7 @@ import PatientPage from './pages/PatientPage';
 import AddPage from './pages/AddPage';
 import SettingsPage from './pages/SettingsPage';
 import MedicationsPage from './pages/MedicationsPage';
+import RecordsPage from './pages/RecordsPage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/group/:slug/add" element={<AddPage />} />
         <Route path="/group/:slug/medications" element={<MedicationsPage />} />
         <Route path="/group/:slug/settings" element={<SettingsPage />} />
+        <Route path="/group/:slug/records" element={<RecordsPage />} />
       </Routes>
     </Router>
   );

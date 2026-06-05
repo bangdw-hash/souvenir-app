@@ -38,10 +38,14 @@ jobs:
           channelId: live
           projectId: family-health-hub-60b41
 
-      - name: Deploy Firebase Storage Rules
+      - name: Deploy Firebase Storage
         run: |
           npm install -g firebase-tools
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/sa.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+          firebase storage:buckets:create gs://family-health-hub-60b41.firebasestorage.app \
+            --project family-health-hub-60b41 2>/dev/null || true
+          printf '[{"origin":["*"],"method":["GET","HEAD","PUT","POST","DELETE"],"responseHeader":["Content-Type","Content-Disposition","Origin","Accept","Authorization"],"maxAgeSeconds":3600}]' > /tmp/cors.json
+          gsutil cors set /tmp/cors.json gs://family-health-hub-60b41.firebasestorage.app || true
           firebase deploy --only storage --project family-health-hub-60b41
-          rm -f /tmp/sa.json
+          rm -f /tmp/sa.json /tmp/cors.json

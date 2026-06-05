@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Paperclip, FileText, Loader, Camera, Image, Folder } from 'lucide-react';
+import { X, Paperclip, FileText, Loader, Camera, Image, Folder } from 'lucide-react';
 import { addAppointment, updateAppointment } from '../../services/appointments';
 import { uploadAppointmentFile, formatFileSize } from '../../services/storage';
 import { logActivity } from '../../services/groups';
@@ -49,6 +49,7 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
       return;
     }
     setSaving(true);
+    setError('');
     try {
       const patient = patients.find((p) => p.id === form.patientId);
       let apptId;
@@ -192,11 +193,11 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
 
         {/* 첨부파일 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">첨부파일 (예약증, 변원 안내문 등)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">첨부파일 (예약증, 백신증 등)</label>
 
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleFileAdd} className="hidden" />
           <input ref={galleryRef} type="file" accept="image/*,video/*" multiple onChange={handleFileAdd} className="hidden" />
-          <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.hwp,.txt,image/*,application/pdf" multiple onChange={handleFileAdd} className="hidden" />
+          <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.hwp,.txt,image/*" multiple onChange={handleFileAdd} className="hidden" />
 
           {existingAttachments.length > 0 && (
             <div className="space-y-1.5 mb-2">
@@ -264,52 +265,59 @@ export default function AppointmentForm({ groupId, patients, initial, onSuccess,
         </div>
       </form>
 
-      {/* 파일 선택 바텀 시트 — 3-column grid */}
+      {/* 파일 선택 바텀 시트 */}
       {showFilePicker && (
         <div className="fixed inset-0 z-50" onClick={() => setShowFilePicker(false)}>
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 pb-8"
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 space-y-3 safe-area-pb"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-            <p className="text-sm font-semibold text-gray-800 mb-4 text-center">첨부 파일 추가</p>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+            <p className="text-sm font-semibold text-gray-700 mb-4 text-center">파일 첨부 방법 선택</p>
 
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <button
-                onClick={() => cameraRef.current?.click()}
-                className="flex flex-col items-center gap-2.5 py-5 bg-gray-50 rounded-2xl hover:bg-blue-50 active:bg-blue-100 transition-colors"
-              >
-                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                  <Camera size={24} className="text-blue-600" />
-                </div>
-                <span className="text-xs font-semibold text-gray-700">카메라</span>
-              </button>
+            <button
+              onClick={() => cameraRef.current?.click()}
+              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left"
+            >
+              <div className="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Camera size={22} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">카메라 촬영</p>
+                <p className="text-xs text-gray-400 mt-0.5">지금 바로 촬영하여 첨부</p>
+              </div>
+            </button>
 
-              <button
-                onClick={() => galleryRef.current?.click()}
-                className="flex flex-col items-center gap-2.5 py-5 bg-gray-50 rounded-2xl hover:bg-green-50 active:bg-green-100 transition-colors"
-              >
-                <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <Image size={24} className="text-green-600" />
-                </div>
-                <span className="text-xs font-semibold text-gray-700">사진</span>
-              </button>
+            <button
+              onClick={() => galleryRef.current?.click()}
+              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left"
+            >
+              <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Image size={22} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">갤러리에서 선택</p>
+                <p className="text-xs text-gray-400 mt-0.5">사진 및 동영상 앨범에서 선택</p>
+              </div>
+            </button>
 
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="flex flex-col items-center gap-2.5 py-5 bg-gray-50 rounded-2xl hover:bg-purple-50 active:bg-purple-100 transition-colors"
-              >
-                <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
-                  <Folder size={24} className="text-purple-600" />
-                </div>
-                <span className="text-xs font-semibold text-gray-700">파일</span>
-              </button>
-            </div>
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 active:bg-gray-200 transition-colors text-left"
+            >
+              <div className="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Folder size={22} className="text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">파일 업로드</p>
+                <p className="text-xs text-gray-400 mt-0.5">PDF, 문서, 이미지 파일 선택</p>
+              </div>
+            </button>
 
             <button
               onClick={() => setShowFilePicker(false)}
-              className="w-full py-2.5 text-sm text-gray-400 hover:text-gray-600"
+              className="w-full py-3 text-sm text-gray-400 hover:text-gray-600 mt-1"
             >
               취소
             </button>

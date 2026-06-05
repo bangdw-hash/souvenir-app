@@ -5,6 +5,7 @@
     "rewrites": [{ "source": "**", "destination": "/index.html" }]
   },
   "storage": {
+    "bucket": "family-health-hub-60b41.firebasestorage.app",
     "rules": "storage.rules"
   }
 }

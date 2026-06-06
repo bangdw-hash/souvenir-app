@@ -41,7 +41,7 @@ export default function MedicalReport({ patient, appointments, records, medicati
         lines.push(`• [${r.visitDate || '날짜 미상'}] ${r.diagnosis || '진단명 없음'}`);
         if (r.memo) lines.push(`  소견: ${r.memo}`);
         if (r.prescriptions?.length) lines.push(`  처방약: ${r.prescriptions.join(', ')}`);
-        if (r.nextVisitDate) lines.push(`  다음 예약: ${r.nextVisitDate}`);
+        if (r.nextVisitDate) lines.push(`  다음 예약: ${r.nextVisitDate}${r.nextVisitTime ? ` ${r.nextVisitTime}` : ''}`);
       });
     }
 
@@ -151,7 +151,7 @@ export default function MedicalReport({ patient, appointments, records, medicati
                       </div>
                     )}
                     {r.nextVisitDate && (
-                      <p className="text-blue-600">다음 예약: {r.nextVisitDate}</p>
+                      <p className="text-blue-600">다음 예약: {r.nextVisitDate}{r.nextVisitTime ? ` ${r.nextVisitTime}` : ''}</p>
                     )}
                   </div>
                 ))}

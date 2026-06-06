@@ -54,7 +54,9 @@ export default function RecordDetail({ record, patient, appointment, onDelete, o
       {record.nextVisitDate && (
         <div className="flex items-center justify-between text-xs bg-blue-50 rounded-xl px-3 py-2.5">
           <span className="text-gray-500">다음 예약일</span>
-          <span className="font-semibold text-blue-700">{record.nextVisitDate}</span>
+          <span className="font-semibold text-blue-700">
+            {record.nextVisitDate}{record.nextVisitTime ? ` ${record.nextVisitTime}` : ''}
+          </span>
         </div>
       )}
 

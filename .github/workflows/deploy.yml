@@ -25,6 +25,7 @@ jobs:
           echo "VITE_FIREBASE_APP_ID=1:1034822906211:web:c0fc89c166209178fae356" >> .env
           echo "VITE_CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
           echo "VITE_CLOUDINARY_UPLOAD_PRESET=${{ secrets.CLOUDINARY_UPLOAD_PRESET }}" >> .env
+          echo "VITE_ANTHROPIC_API_KEY=${{ secrets.VITE_ANTHROPIC_API_KEY }}" >> .env
 
       - name: Install dependencies
         run: npm install

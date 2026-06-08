@@ -45,6 +45,7 @@ export default function GroupDashboard() {
 
   const upcomingAppts = appointments
     .filter((a) => a.date >= todayStr && a.date <= nextWeekStr && a.status !== '취소')
+    .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5);
 
   function getPatient(patientId) {

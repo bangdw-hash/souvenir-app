@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Edit2, ChevronLeft, Trash2, Plus, Hospital, Phone, FileText } from 'lucide-react';
+import { User, Edit2, ChevronLeft, Trash2, Plus, Hospital, Phone, FileText, Pill } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AppointmentCard from '../components/appointments/AppointmentCard';
 import RecordCard from '../components/records/RecordCard';
 import RecordDetail from '../components/records/RecordDetail';
+import MedicationCard from '../components/medications/MedicationCard';
+import MedicationForm from '../components/medications/MedicationForm';
 import Modal from '../components/common/Modal';
 import PatientForm from '../components/patients/PatientForm';
 import AppointmentForm from '../components/appointments/AppointmentForm';
@@ -18,10 +20,11 @@ import { useRecords } from '../hooks/useRecords';
 import { useMedications } from '../hooks/useMedications';
 import { deletePatient } from '../services/patients';
 import { deleteRecord, updateRecord } from '../services/records';
+import { updateMedication, deleteMedication } from '../services/medications';
 import { deleteRecordFile } from '../services/storage';
 import { formatDate } from '../utils/dateUtils';
 
-const TABS = ['진료 일정', '진료 기록'];
+const TABS = ['진료 일정', '진료 기록', '복약'];
 
 export default function PatientPage() {
   const { slug, patientId } = useParams();
@@ -37,7 +40,10 @@ export default function PatientPage() {
   const [showAddAppt, setShowAddAppt] = useState(false);
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [viewingRecord, setViewingRecord] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
   const [showReport, setShowReport] = useState(false);
+  const [showAddMed, setShowAddMed] = useState(false);
+  const [editingMed, setEditingMed] = useState(null);
 
   if (groupLoading || patientsLoading) return <LoadingSpinner />;
 
@@ -53,9 +59,15 @@ export default function PatientPage() {
     );
   }
 
-  const patientAppts = appointments.filter((a) => a.patientId === patientId);
-  const patientRecords = records.filter((r) => r.patientId === patientId);
-  const patientMeds = medications?.filter((m) => m.patientId === patientId) || [];
+  const patientAppts = appointments
+    .filter((a) => a.patientId === patientId)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const patientRecords = records
+    .filter((r) => r.patientId === patientId)
+    .sort((a, b) => ((b.visitDate || '') > (a.visitDate || '') ? 1 : -1));
+
+  const patientMeds = (medications || []).filter((m) => m.patientId === patientId);
   const age = patient.birth ? new Date().getFullYear() - new Date(patient.birth).getFullYear() : null;
 
   const hospitals = patient.hospitals?.length
@@ -85,8 +97,18 @@ export default function PatientPage() {
     setViewingRecord((prev) => prev ? { ...prev, attachments: updated } : null);
   }
 
+  async function handleToggleMed(med, active) {
+    await updateMedication(group.id, med.id, { active });
+  }
+
+  async function handleDeleteMed(med) {
+    if (!confirm(`${med.name} 복약 정보를 삭제하시겠습니까?`)) return;
+    await deleteMedication(group.id, med.id);
+  }
+
   return (
     <Layout group={group} title="">
+      {/* 헤더 배너 */}
       <div className={`${patient.color?.bg || 'bg-blue-100'} px-4 pt-4 pb-6`}>
         <button onClick={() => navigate(`/group/${slug}`)} className="flex items-center gap-1 text-sm text-gray-600 mb-4">
           <ChevronLeft size={16} /> 뒤로
@@ -168,6 +190,7 @@ export default function PatientPage() {
         </button>
       </div>
 
+      {/* 탭 */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="flex">
           {TABS.map((tab, i) => (
@@ -179,7 +202,7 @@ export default function PatientPage() {
             >
               {tab}
               <span className="ml-1 text-xs text-gray-400">
-                ({i === 0 ? patientAppts.length : patientRecords.length})
+                ({i === 0 ? patientAppts.length : i === 1 ? patientRecords.length : patientMeds.length})
               </span>
             </button>
           ))}
@@ -233,6 +256,34 @@ export default function PatientPage() {
             )}
           </>
         )}
+
+        {activeTab === 2 && (
+          <>
+            <button
+              onClick={() => { setEditingMed(null); setShowAddMed(true); }}
+              className="w-full py-3 border-2 border-dashed border-purple-200 rounded-2xl text-sm text-purple-400 flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors"
+            >
+              <Plus size={16} /> 복약 정보 추가
+            </button>
+            {patientMeds.length === 0 ? (
+              <div className="text-center py-8">
+                <Pill size={36} className="text-gray-200 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">등록된 복약 정보가 없습니다.</p>
+              </div>
+            ) : (
+              patientMeds.map((m) => (
+                <MedicationCard
+                  key={m.id}
+                  medication={m}
+                  patient={patient}
+                  onEdit={() => { setEditingMed(m); setShowAddMed(true); }}
+                  onDelete={() => handleDeleteMed(m)}
+                  onToggle={(active) => handleToggleMed(m, active)}
+                />
+              ))
+            )}
+          </>
+        )}
       </div>
 
       <Modal isOpen={showEditPatient} onClose={() => setShowEditPatient(false)} title="구성원 정보 수정">
@@ -253,10 +304,38 @@ export default function PatientPage() {
             record={viewingRecord}
             patient={patient}
             appointment={appointments.find((a) => a.id === viewingRecord.apptId)}
+            onEdit={() => { setEditingRecord(viewingRecord); setViewingRecord(null); }}
             onDelete={() => handleDeleteRecord(viewingRecord)}
             onDeleteAttachment={(i) => handleDeleteRecordAttachment(viewingRecord, i)}
           />
         )}
+      </Modal>
+
+      <Modal isOpen={Boolean(editingRecord)} onClose={() => setEditingRecord(null)} title="진료 기록 수정">
+        {editingRecord && (
+          <RecordForm
+            groupId={group?.id}
+            patients={patients}
+            appointments={patientAppts}
+            initial={editingRecord}
+            onSuccess={() => setEditingRecord(null)}
+            onCancel={() => setEditingRecord(null)}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={showAddMed}
+        onClose={() => { setShowAddMed(false); setEditingMed(null); }}
+        title={editingMed ? '복약 수정' : '복약 추가'}
+      >
+        <MedicationForm
+          groupId={group?.id}
+          patients={patients}
+          initial={editingMed ? editingMed : { patientId }}
+          onSuccess={() => { setShowAddMed(false); setEditingMed(null); }}
+          onCancel={() => { setShowAddMed(false); setEditingMed(null); }}
+        />
       </Modal>
 
       {showReport && (

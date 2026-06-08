@@ -2,7 +2,7 @@ import { Calendar, Paperclip, X } from 'lucide-react';
 import { formatDateShort } from '../../utils/dateUtils';
 import { formatFileSize } from '../../services/storage';
 
-export default function RecordDetail({ record, patient, appointment, onDelete, onDeleteAttachment }) {
+export default function RecordDetail({ record, patient, appointment, onEdit, onDelete, onDeleteAttachment }) {
   return (
     <div className="space-y-4 text-sm">
       <div className="flex items-start justify-between gap-2">
@@ -91,14 +91,24 @@ export default function RecordDetail({ record, patient, appointment, onDelete, o
         </div>
       )}
 
-      {onDelete && (
-        <div className="pt-2 border-t border-gray-100">
-          <button
-            onClick={onDelete}
-            className="w-full py-3 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors"
-          >
-            진료 기록 삭제
-          </button>
+      {(onEdit || onDelete) && (
+        <div className="pt-2 border-t border-gray-100 flex gap-2">
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="flex-1 py-3 border border-blue-200 text-blue-500 rounded-xl text-sm font-medium hover:bg-blue-50 active:bg-blue-100 transition-colors"
+            >
+              수정
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className={`py-3 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors ${onEdit ? 'flex-1' : 'w-full'}`}
+            >
+              진료 기록 삭제
+            </button>
+          )}
         </div>
       )}
     </div>
